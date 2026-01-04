@@ -1,59 +1,29 @@
-# tests/alerts/test_renderer.py
-
 from sjs_sitewatch.alerts.renderer import AlertRenderer
-from sjs_sitewatch.domain.diff import JobChange, FieldChange
+from sjs_sitewatch.alerts.models import ScoredChange
+from sjs_sitewatch.alerts.severity import Severity
+from sjs_sitewatch.domain.diff import JobChange
 
-from tests.helpers.jobs import make_job
+from helpers.jobs import make_job
 
 
-def test_render_text_contains_title() -> None:
+def test_html_snapshot(snapshot):
     renderer = AlertRenderer()
 
-    changes = [
-        JobChange(
-            job_id="job-1",
+    job = make_job(
+        id="job-1",
+        title="Data Engineer",
+    )
+
+    change = ScoredChange(
+        change=JobChange(
+            job_id=job.id,
             before=None,
-            after=make_job(
-                id="job-1",
-                title="Data Engineer",
-            ),
+            after=job,
             changes=[],
-        )
-    ]
-
-    text = renderer.render_text(changes)
-
-    assert "Data Engineer" in text
-
-
-def test_render_html_contains_field_changes() -> None:
-    renderer = AlertRenderer()
-
-    before = make_job(
-        id="job-1",
-        title="Junior Developer",
-    )
-    after = make_job(
-        id="job-1",
-        title="Senior Developer",
+        ),
+        severity=Severity.HIGH,
     )
 
-    changes = [
-        JobChange(
-            job_id="job-1",
-            before=before,
-            after=after,
-            changes=[
-                FieldChange(
-                    field="title",
-                    before="Junior Developer",
-                    after="Senior Developer",
-                )
-            ],
-        )
-    ]
+    html = renderer.render_html([change])
 
-    html = renderer.render_html(changes)
-
-    assert "Senior Developer" in html
-    assert "Junior Developer" in html
+    snapshot.assert_match(html, "alert_email.html")

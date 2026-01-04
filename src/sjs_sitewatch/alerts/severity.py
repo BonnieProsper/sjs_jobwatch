@@ -25,13 +25,13 @@ class SeverityCalculator:
         change: JobChange,
         trends: TrendReport,
     ) -> Severity:
-        # --- Added jobs are interesting but not urgent ---
+        # New job postings are always high signal
         if change.before is None and change.after is not None:
-            return Severity.MEDIUM
-
-        # --- Removed jobs are usually high signal ---
-        if change.before is not None and change.after is None:
             return Severity.HIGH
+        
+        # --- Removed jobs are usually medium signal ---
+        if change.before is not None and change.after is None:
+            return Severity.MEDIUM
 
         # --- Modified jobs ---
         if change.before and change.after:
@@ -54,4 +54,48 @@ class SeverityCalculator:
                 return Severity.MEDIUM
 
         # --- Default fallback ---
+        return Severity.LOW
+
+
+# TODO: new, consolidate both files
+
+from enum import IntEnum
+
+from sjs_sitewatch.domain.diff import JobChange
+from sjs_sitewatch.domain.trends import TrendReport
+
+
+class Severity(IntEnum):
+    LOW = 1
+    MEDIUM = 2
+    HIGH = 3
+
+
+class SeverityCalculator:
+    """
+    Assigns severity to a JobChange using both:
+    - local diff information
+    - multi-day trend context
+    """
+
+    def score(
+        self,
+        change: JobChange,
+        trends: TrendReport,
+    ) -> Severity:
+        # Job added or removed is always notable
+        if change.before is None or change.after is None:
+            return Severity.HIGH
+
+        # Title or salary change
+        if any(
+            c.field in {"title", "pay_min", "pay_max"}
+            for c in change.changes
+        ):
+            return Severity.HIGH
+
+        # Persistent jobs changing is more important
+        if change.job_id in trends.persistent_jobs:
+            return Severity.MEDIUM
+
         return Severity.LOW

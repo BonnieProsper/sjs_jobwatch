@@ -1,7 +1,13 @@
 from typing import Iterable, List
 
 from sjs_sitewatch.domain.job import Job
+from sjs_sitewatch.alerts.models import ScoredChange
+from sjs_sitewatch.alerts.severity import Severity
 
+
+# -------------------------
+# Job-level filters
+# -------------------------
 
 ICT_KEYWORDS = {
     "software",
@@ -22,34 +28,20 @@ ICT_KEYWORDS = {
 
 
 def _safe_text(*values: str | None) -> str:
-    """
-    Join optional strings into a single lowercase blob for matching.
-    """
     return " ".join(v for v in values if v).lower()
 
 
 def is_ict_job(job: Job) -> bool:
-    """
-    Heuristic check for ICT-related roles based on
-    title + summary keyword matching.
-    """
     text = _safe_text(job.title, job.summary)
     return any(keyword in text for keyword in ICT_KEYWORDS)
 
 
 def filter_ict(jobs: Iterable[Job]) -> List[Job]:
-    """
-    Filters a collection of jobs to ICT-only roles.
-    """
     return [job for job in jobs if is_ict_job(job)]
 
 
 def filter_region(jobs: Iterable[Job], region: str) -> List[Job]:
-    """
-    Filters jobs by case-insensitive exact region match.
-    """
     region_normalized = region.strip().lower()
-
     return [
         job
         for job in jobs
@@ -57,13 +49,9 @@ def filter_region(jobs: Iterable[Job], region: str) -> List[Job]:
     ]
 
 
-# NEW FILE, TODO: CONSOLIDATE
-
-from typing import Iterable, List
-
-from sjs_sitewatch.alerts.models import ScoredChange
-from sjs_sitewatch.alerts.severity import Severity
-
+# -------------------------
+# Alert-level filters
+# -------------------------
 
 def filter_by_min_severity(
     changes: Iterable[ScoredChange],

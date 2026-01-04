@@ -1,3 +1,5 @@
+# TODO: delete/how does it integrate with severity
+
 from enum import IntEnum
 from typing import Iterable, List
 

@@ -9,6 +9,10 @@ from sjs_sitewatch.domain.job import Job
 from sjs_sitewatch.domain.snapshot import Snapshot
 
 
+# -------------------------
+# Atomic trend events
+# -------------------------
+
 @dataclass(frozen=True)
 class TitleChange:
     job_id: str
@@ -27,21 +31,31 @@ class SalaryChange:
     day: date
 
 
-@dataclass
+# -------------------------
+# Aggregate trend report
+# -------------------------
+
+@dataclass(frozen=True)
 class TrendReport:
     job_counts_by_day: Dict[date, int]
+
     persistent_jobs: List[str]
     new_jobs: List[str]
     removed_jobs: List[str]
+
     title_changes: List[TitleChange]
     salary_changes: List[SalaryChange]
 
+
+# -------------------------
+# Analyzer
+# -------------------------
 
 class TrendAnalyzer:
     """
     Analyze multiple snapshots over time and extract multi-day trends.
 
-    This class is PURE:
+    PURE:
     - no I/O
     - no rendering
     - no alerting
@@ -49,7 +63,8 @@ class TrendAnalyzer:
 
     def __init__(self, snapshots: Iterable[Snapshot]) -> None:
         self._snapshots = sorted(
-            snapshots, key=lambda s: s.captured_at
+            snapshots,
+            key=lambda s: s.captured_at,
         )
 
     def analyze(self) -> TrendReport:
@@ -100,7 +115,7 @@ class TrendAnalyzer:
 
             previous_jobs = current_jobs
 
-        all_days = list(job_counts.keys())
+        all_days = sorted(job_counts.keys())
         total_days = len(all_days)
 
         persistent_jobs = [
@@ -112,7 +127,7 @@ class TrendAnalyzer:
         new_jobs = [
             job_id
             for job_id, days in appearances.items()
-            if days[0] == all_days[0] and len(days) < total_days
+            if days[0] == all_days[-1]
         ]
 
         removed_jobs = [
