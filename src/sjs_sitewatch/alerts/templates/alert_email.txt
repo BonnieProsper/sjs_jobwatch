@@ -1,0 +1,10 @@
+SJS Sitewatch detected {{ alerts | length }} update(s):
+
+{% for alert in alerts %}
+- {{ alert.title }}
+  Category: {{ alert.category }}
+  Region: {{ alert.region }}
+  Change: {{ alert.summary }}
+{% endfor %}
+
+Generated automatically by SJS Sitewatch.
