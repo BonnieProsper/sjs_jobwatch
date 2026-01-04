@@ -1,59 +1,131 @@
-from collections import Counter
+from __future__ import annotations
+
+from collections import defaultdict
+from dataclasses import dataclass
+from datetime import date
 from typing import Dict, Iterable, List
 
-from .snapshot import Snapshot
+from sjs_sitewatch.domain.job import Job
+from sjs_sitewatch.domain.snapshot import Snapshot
 
 
-def total_jobs(snapshot: Snapshot) -> int:
-    return len(snapshot.jobs)
+@dataclass(frozen=True)
+class TitleChange:
+    job_id: str
+    before: str
+    after: str
+    day: date
 
 
-def jobs_by_region(snapshot: Snapshot) -> Dict[str, int]:
-    return Counter(
-        job.region
-        for job in snapshot.jobs.values()
-        if job.region
-    )
+@dataclass(frozen=True)
+class SalaryChange:
+    job_id: str
+    before_min: float | None
+    after_min: float | None
+    before_max: float | None
+    after_max: float | None
+    day: date
 
 
-def job_growth(previous: Snapshot, current: Snapshot) -> int:
-    return len(current.jobs) - len(previous.jobs)
+@dataclass
+class TrendReport:
+    job_counts_by_day: Dict[date, int]
+    persistent_jobs: List[str]
+    new_jobs: List[str]
+    removed_jobs: List[str]
+    title_changes: List[TitleChange]
+    salary_changes: List[SalaryChange]
 
 
-def region_growth(previous: Snapshot, current: Snapshot) -> Dict[str, int]:
-    prev = jobs_by_region(previous)
-    curr = jobs_by_region(current)
-
-    delta: Dict[str, int] = {}
-    keys = set(prev) | set(curr)
-
-    for key in keys:
-        delta[key] = curr.get(key, 0) - prev.get(key, 0)
-
-    return delta
-
-
-def rolling_job_growth(
-    snapshots: List[Snapshot],
-    days: int = 7,
-) -> int | None:
+class TrendAnalyzer:
     """
-    Compute job count growth between the latest snapshot
-    and the snapshot N positions earlier.
+    Analyze multiple snapshots over time and extract multi-day trends.
 
-    Note: this is index-based, not time-based.
+    This class is PURE:
+    - no I/O
+    - no rendering
+    - no alerting
     """
-    if len(snapshots) <= days:
-        return None
 
-    return len(snapshots[-1].jobs) - len(snapshots[-days - 1].jobs)
+    def __init__(self, snapshots: Iterable[Snapshot]) -> None:
+        self._snapshots = sorted(
+            snapshots, key=lambda s: s.captured_at
+        )
 
+    def analyze(self) -> TrendReport:
+        job_counts: Dict[date, int] = {}
+        appearances: Dict[str, List[date]] = defaultdict(list)
 
-def rolling_churn(snapshots: Iterable[Snapshot]) -> int:
-    total = 0
-    snaps = list(snapshots)
+        title_changes: List[TitleChange] = []
+        salary_changes: List[SalaryChange] = []
 
-    for prev, curr in zip(snaps, snaps[1:]):
-        total += abs(len(curr.jobs) - len(prev.jobs))
+        previous_jobs: Dict[str, Job] = {}
 
-    return total
+        for snapshot in self._snapshots:
+            day = snapshot.captured_at.date()
+            current_jobs = snapshot.jobs
+
+            job_counts[day] = len(current_jobs)
+
+            for job_id, job in current_jobs.items():
+                appearances[job_id].append(day)
+
+                if job_id in previous_jobs:
+                    prev = previous_jobs[job_id]
+
+                    if job.title != prev.title:
+                        title_changes.append(
+                            TitleChange(
+                                job_id=job_id,
+                                before=prev.title,
+                                after=job.title,
+                                day=day,
+                            )
+                        )
+
+                    if (
+                        job.pay_min != prev.pay_min
+                        or job.pay_max != prev.pay_max
+                    ):
+                        salary_changes.append(
+                            SalaryChange(
+                                job_id=job_id,
+                                before_min=prev.pay_min,
+                                after_min=job.pay_min,
+                                before_max=prev.pay_max,
+                                after_max=job.pay_max,
+                                day=day,
+                            )
+                        )
+
+            previous_jobs = current_jobs
+
+        all_days = list(job_counts.keys())
+        total_days = len(all_days)
+
+        persistent_jobs = [
+            job_id
+            for job_id, days in appearances.items()
+            if len(days) == total_days
+        ]
+
+        new_jobs = [
+            job_id
+            for job_id, days in appearances.items()
+            if days[0] == all_days[0] and len(days) < total_days
+        ]
+
+        removed_jobs = [
+            job_id
+            for job_id, days in appearances.items()
+            if days[-1] != all_days[-1]
+        ]
+
+        return TrendReport(
+            job_counts_by_day=job_counts,
+            persistent_jobs=persistent_jobs,
+            new_jobs=new_jobs,
+            removed_jobs=removed_jobs,
+            title_changes=title_changes,
+            salary_changes=salary_changes,
+        )
