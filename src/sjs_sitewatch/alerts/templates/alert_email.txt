@@ -1,10 +1,12 @@
-SJS Sitewatch detected {{ alerts | length }} update(s):
+Job updates detected
 
-{% for alert in alerts %}
-- {{ alert.title }}
-  Category: {{ alert.category }}
-  Region: {{ alert.region }}
-  Change: {{ alert.summary }}
+{% for change in changes %}
+- {{ change.after.title if change.after else change.before.title }}
+{% if change.changes %}
+{% for field in change.changes %}
+  * {{ field.field }}: {{ field.before }} -> {{ field.after }}
 {% endfor %}
-
-Generated automatically by SJS Sitewatch.
+{% else %}
+  * New job added
+{% endif %}
+{% endfor %}

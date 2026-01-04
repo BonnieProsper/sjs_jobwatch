@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Iterable
+from typing import Iterable, List
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
@@ -13,8 +13,8 @@ _TEMPLATE_DIR = Path(__file__).parent / "templates"
 
 class AlertRenderer:
     """
-    Responsible solely for rendering alert content (text + HTML).
-    No SMTP, no filtering, no side effects.
+    Pure renderer for alert content (text + HTML).
+    No side effects.
     """
 
     def __init__(self) -> None:
@@ -26,13 +26,15 @@ class AlertRenderer:
         )
 
     def render_subject(self, changes: Iterable[JobChange]) -> str:
-        count = len(list(changes))
-        return f"SJS SiteWatch — {count} job update(s)"
+        changes_list = list(changes)
+        return f"SJS SiteWatch — {len(changes_list)} job update(s)"
 
     def render_text(self, changes: Iterable[JobChange]) -> str:
+        changes_list = list(changes)
         template = self._env.get_template("alert_email.txt")
-        return template.render(changes=list(changes))
+        return template.render(changes=changes_list)
 
     def render_html(self, changes: Iterable[JobChange]) -> str:
+        changes_list = list(changes)
         template = self._env.get_template("alert_email.html")
-        return template.render(changes=list(changes))
+        return template.render(changes=changes_list)
