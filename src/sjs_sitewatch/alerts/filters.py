@@ -55,3 +55,22 @@ def filter_region(jobs: Iterable[Job], region: str) -> List[Job]:
         for job in jobs
         if job.region and job.region.lower() == region_normalized
     ]
+
+
+# NEW FILE, TODO: CONSOLIDATE
+
+from typing import Iterable, List
+
+from sjs_sitewatch.alerts.models import ScoredChange
+from sjs_sitewatch.alerts.severity import Severity
+
+
+def filter_by_min_severity(
+    changes: Iterable[ScoredChange],
+    min_severity: Severity,
+) -> List[ScoredChange]:
+    return [
+        change
+        for change in changes
+        if change.severity >= min_severity
+    ]

@@ -100,3 +100,29 @@ def send_email_alert(
         server.starttls()
         server.login(sender, password)
         server.send_message(msg)
+
+
+# NEW FILE, TODO: CONSOLIDATE
+
+from sjs_sitewatch.alerts.renderer import AlertRenderer
+from sjs_sitewatch.alerts.models import ScoredChange
+
+
+def send_email_alert(
+    changes: list[ScoredChange],
+    to_email: str,
+    *,
+    dry_run: bool = False,
+) -> None:
+    renderer = AlertRenderer()
+
+    subject = renderer.render_subject(changes)
+    body = renderer.render_html(changes)
+
+    if dry_run:
+        print("EMAIL (dry run)")
+        print(subject)
+        print(body)
+        return
+
+    # SMTP integration later

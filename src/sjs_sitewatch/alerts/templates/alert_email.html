@@ -3,20 +3,22 @@
 {% block content %}
 <h1>Job updates detected</h1>
 
-{% for change in changes %}
-  <h2>{{ change.after.title if change.after else change.before.title }}</h2>
+{% for item in changes %}
+  <div class="alert severity-{{ item.severity.name|lower }}">
+    <h3>{{ item.change.after.title if item.change.after else item.change.before.title }}</h3>
 
-  {% if change.changes %}
-    <ul>
-      {% for field in change.changes %}
-        <li>
-          <strong>{{ field.field }}</strong>:
-          {{ field.before }} → {{ field.after }}
-        </li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <p>New job added.</p>
-  {% endif %}
+    <p><strong>Severity:</strong> {{ item.severity.name }}</p>
+
+    {% if item.change.changes %}
+      <ul>
+        {% for c in item.change.changes %}
+          <li>
+            <strong>{{ c.field }}</strong>:
+            {{ c.before }} → {{ c.after }}
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </div>
 {% endfor %}
 {% endblock %}

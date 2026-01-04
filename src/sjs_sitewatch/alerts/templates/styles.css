@@ -31,3 +31,15 @@ h1 {
   font-size: 0.9em;
   color: #666;
 }
+
+.severity-low {
+  border-left: 4px solid #9ca3af;
+}
+
+.severity-medium {
+  border-left: 4px solid #f59e0b;
+}
+
+.severity-high {
+  border-left: 4px solid #dc2626;
+}
