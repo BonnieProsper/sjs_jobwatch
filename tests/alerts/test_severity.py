@@ -1,57 +1,36 @@
-from datetime import date
+from datetime import datetime
 
+from sjs_sitewatch.alerts.severity import Severity, SeverityCalculator
 from sjs_sitewatch.domain.diff import JobChange
-from sjs_sitewatch.domain.explain import ChangeSeverity, job_change_severity
-from sjs_sitewatch.domain.job import Job
+from sjs_sitewatch.domain.snapshot import Snapshot
+from sjs_sitewatch.domain.trends import TrendAnalyzer
+from tests.helpers.jobs import make_job
 
 
-def _job(**overrides) -> Job:
-    today = date.today()
-
-    return Job(
-        id="1",
-        title="Software Engineer",
-        employer="Corp",
-        summary="Test",
-        description="Desc",
-        category="ICT",
-        classification="IT",
-        sub_classification="Software",
-        job_type="Full Time",
-        region="Auckland",
-        area="Remote",
-        pay_min=100000,
-        pay_max=120000,
-        posted_date=today,
-        start_date=None,
-        end_date=None,
-        **overrides,
+def test_salary_change_is_high_severity():
+    snapshot1 = Snapshot(
+        captured_at=datetime(2024, 1, 1, 9, 0),
+        jobs={
+            "1": make_job(id="1", pay_min=100000, pay_max=120000),
+        },
     )
 
+    snapshot2 = Snapshot(
+        captured_at=datetime(2024, 1, 2, 9, 0),
+        jobs={
+            "1": make_job(id="1", pay_min=110000, pay_max=130000),
+        },
+    )
 
-def test_new_job_is_at_least_medium_severity():
-    job = _job()
+    trends = TrendAnalyzer([snapshot1, snapshot2]).analyze()
 
     change = JobChange(
-        job_id=job.id,
-        before=None,
-        after=job,
+        job_id="1",
+        before=snapshot1.jobs["1"],
+        after=snapshot2.jobs["1"],
         changes=[],
     )
 
-    severity = job_change_severity(change)
-    assert severity >= ChangeSeverity.MEDIUM
+    severity = SeverityCalculator().score(change, trends)
 
-
-def test_no_change_is_low_severity():
-    before = _job()
-    after = _job()
-
-    change = JobChange(
-        job_id=after.id,
-        before=before,
-        after=after,
-        changes=[],
-    )
-
-    assert job_change_severity(change) == ChangeSeverity.LOW
+    assert severity == Severity.HIGH
