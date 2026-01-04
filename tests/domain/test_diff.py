@@ -1,3 +1,4 @@
+# TODO: use helper/job.py to create job instance
 from datetime import date
 
 from sjs_sitewatch.domain.diff import JobChange

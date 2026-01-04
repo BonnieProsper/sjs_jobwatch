@@ -1,4 +1,6 @@
-# tests/alerts/test_renderer.py
+# tests/alerts/test_email_snapshots.py
+
+from pathlib import Path
 
 from sjs_sitewatch.alerts.renderer import AlertRenderer
 from sjs_sitewatch.domain.diff import JobChange, FieldChange
@@ -6,27 +8,17 @@ from sjs_sitewatch.domain.diff import JobChange, FieldChange
 from tests.helpers.jobs import make_job
 
 
-def test_render_text_contains_title() -> None:
-    renderer = AlertRenderer()
-
-    changes = [
-        JobChange(
-            job_id="job-1",
-            before=None,
-            after=make_job(
-                id="job-1",
-                title="Data Engineer",
-            ),
-            changes=[],
-        )
-    ]
-
-    text = renderer.render_text(changes)
-
-    assert "Data Engineer" in text
+SNAPSHOTS_DIR = Path(__file__).parent / "snapshots"
 
 
-def test_render_html_contains_field_changes() -> None:
+def normalize_html(html: str) -> str:
+    """
+    Normalize whitespace so tests are robust to formatting.
+    """
+    return " ".join(html.split())
+
+
+def test_render_html_modified_job_snapshot() -> None:
     renderer = AlertRenderer()
 
     before = make_job(
@@ -55,5 +47,8 @@ def test_render_html_contains_field_changes() -> None:
 
     html = renderer.render_html(changes)
 
-    assert "Senior Developer" in html
-    assert "Junior Developer" in html
+    snapshot = (SNAPSHOTS_DIR / "email_modified_job.html").read_text(
+        encoding="utf-8"
+    )
+
+    assert normalize_html(html) == normalize_html(snapshot)
