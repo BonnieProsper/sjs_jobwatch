@@ -1,16 +1,16 @@
+from datetime import datetime
+
+from sjs_sitewatch.alerts.severity import Severity, SeverityCalculator
 from sjs_sitewatch.domain.diff import JobChange
 from sjs_sitewatch.domain.job import Job
-from sjs_sitewatch.domain.explain import job_change_severity, ChangeSeverity
+from sjs_sitewatch.domain.snapshot import Snapshot
+from sjs_sitewatch.domain.trends import TrendAnalyzer
 
 
-def test_high_severity_job_change_triggers_alert_condition():
-    """
-    Domain-level test: high-impact changes should be classifiable
-    as alert-worthy.
-    """
-    job = Job(
-        id="1",
-        title="Senior Engineer",
+def _job(job_id: str, title: str) -> Job:
+    return Job(
+        id=job_id,
+        title=title,
         employer="ABC",
         summary=None,
         description=None,
@@ -27,11 +27,16 @@ def test_high_severity_job_change_triggers_alert_condition():
         end_date=None,
     )
 
+
+def test_added_job_is_high_severity():
     change = JobChange(
         job_id="1",
-        before=job,
-        after=job,
+        before=None,
+        after=_job("1", "Engineer"),
         changes=[],
     )
 
-    assert job_change_severity(change) == ChangeSeverity.LOW
+    trends = TrendAnalyzer([]).analyze()
+    severity = SeverityCalculator().score(change, trends)
+
+    assert severity == Severity.HIGH

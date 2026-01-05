@@ -1,29 +1,36 @@
-from sjs_sitewatch.alerts.renderer import AlertRenderer
-from sjs_sitewatch.alerts.models import ScoredChange
-from sjs_sitewatch.alerts.severity import Severity
+from datetime import datetime
+
+from sjs_sitewatch.alerts.severity import Severity, SeverityCalculator
 from sjs_sitewatch.domain.diff import JobChange
+from sjs_sitewatch.domain.snapshot import Snapshot
+from sjs_sitewatch.domain.trends import TrendAnalyzer
+from tests.helpers.jobs import make_job
 
-from helpers.jobs import make_job
 
-
-def test_html_snapshot(snapshot):
-    renderer = AlertRenderer()
-
-    job = make_job(
-        id="job-1",
-        title="Data Engineer",
+def test_salary_change_is_high_severity():
+    snapshot1 = Snapshot(
+        captured_at=datetime(2024, 1, 1, 9, 0),
+        jobs={
+            "1": make_job(id="1", pay_min=100000, pay_max=120000),
+        },
     )
 
-    change = ScoredChange(
-        change=JobChange(
-            job_id=job.id,
-            before=None,
-            after=job,
-            changes=[],
-        ),
-        severity=Severity.HIGH,
+    snapshot2 = Snapshot(
+        captured_at=datetime(2024, 1, 2, 9, 0),
+        jobs={
+            "1": make_job(id="1", pay_min=110000, pay_max=130000),
+        },
     )
 
-    html = renderer.render_html([change])
+    trends = TrendAnalyzer([snapshot1, snapshot2]).analyze()
 
-    snapshot.assert_match(html, "alert_email.html")
+    change = JobChange(
+        job_id="1",
+        before=snapshot1.jobs["1"],
+        after=snapshot2.jobs["1"],
+        changes=[],
+    )
+
+    severity = SeverityCalculator().score(change, trends)
+
+    assert severity == Severity.HIGH

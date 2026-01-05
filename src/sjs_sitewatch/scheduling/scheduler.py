@@ -44,5 +44,7 @@ def start_scheduler(
             },
         )
 
-    print(f"Scheduler started with {len(subscriptions)} subscription(s)")
+    print(
+        f"Scheduler started with {len(subscriptions)} subscription(s)"
+    )
     scheduler.start()

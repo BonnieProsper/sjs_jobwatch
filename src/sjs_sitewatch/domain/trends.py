@@ -55,10 +55,10 @@ class TrendAnalyzer:
     """
     Analyze multiple snapshots over time and extract multi-day trends.
 
-    PURE:
-    - no I/O
-    - no rendering
-    - no alerting
+    Invariants:
+    - snapshots are treated as immutable
+    - job disappearance followed by reappearance counts as removed + new
+    - multiple changes to the same job across days are preserved
     """
 
     def __init__(self, snapshots: Iterable[Snapshot]) -> None:
@@ -68,6 +68,16 @@ class TrendAnalyzer:
         )
 
     def analyze(self) -> TrendReport:
+        if not self._snapshots:
+            return TrendReport(
+                job_counts_by_day={},
+                persistent_jobs=[],
+                new_jobs=[],
+                removed_jobs=[],
+                title_changes=[],
+                salary_changes=[],
+            )
+
         job_counts: Dict[date, int] = {}
         appearances: Dict[str, List[date]] = defaultdict(list)
 
@@ -113,9 +123,11 @@ class TrendAnalyzer:
                             )
                         )
 
-            previous_jobs = current_jobs
+            # IMPORTANT: copy to avoid aliasing
+            previous_jobs = dict(current_jobs)
 
         all_days = sorted(job_counts.keys())
+        last_day = all_days[-1]
         total_days = len(all_days)
 
         persistent_jobs = [
@@ -127,13 +139,13 @@ class TrendAnalyzer:
         new_jobs = [
             job_id
             for job_id, days in appearances.items()
-            if days[0] == all_days[-1]
+            if days[0] == last_day
         ]
 
         removed_jobs = [
             job_id
             for job_id, days in appearances.items()
-            if days[-1] != all_days[-1]
+            if days[-1] != last_day
         ]
 
         return TrendReport(

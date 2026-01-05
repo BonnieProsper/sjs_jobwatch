@@ -6,6 +6,7 @@ from typing import Iterable
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from sjs_sitewatch.alerts.models import ScoredChange
+from sjs_sitewatch.alerts.severity import Severity
 
 
 _TEMPLATE_DIR = Path(__file__).parent / "templates"
@@ -26,8 +27,14 @@ class AlertRenderer:
         )
 
     def render_subject(self, changes: Iterable[ScoredChange]) -> str:
-        changes_list = list(changes)
-        return f"SJS SiteWatch — {len(changes_list)} job update(s)"
+        changes = list(changes)
+        highest = max((c.severity for c in changes), default=Severity.LOW)
+
+        return (
+            f"SJS SiteWatch — "
+            f"{len(changes)} update(s) "
+            f"[{highest.name}]"
+        )
 
     def render_text(self, changes: Iterable[ScoredChange]) -> str:
         template = self._env.get_template("alert_email.txt")

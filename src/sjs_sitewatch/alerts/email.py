@@ -16,7 +16,9 @@ def _require_env(name: str) -> str:
     try:
         return os.environ[name]
     except KeyError as exc:
-        raise RuntimeError(f"Missing required environment variable: {name}") from exc
+        raise RuntimeError(
+            f"Missing required environment variable: {name}"
+        ) from exc
 
 
 def send_email_alert(
@@ -35,10 +37,15 @@ def send_email_alert(
     msg["To"] = to_email
 
     msg.set_content(renderer.render_text(changes))
-    msg.add_alternative(renderer.render_html(changes), subtype="html")
+    msg.add_alternative(
+        renderer.render_html(changes),
+        subtype="html",
+    )
 
     if dry_run:
+        print("=== EMAIL (dry run) ===")
         print(msg)
+        print("======================")
         return
 
     sender = _require_env("GMAIL_ADDRESS")

@@ -1,12 +1,14 @@
 Job updates detected
 
-{% for change in changes %}
-- {{ change.after.title if change.after else change.before.title }}
-{% if change.changes %}
-{% for field in change.changes %}
+{% for item in changes %}
+- {{ item.change.after.title if item.change.after else item.change.before.title }}
+  Severity: {{ item.severity.name }}
+{% if item.change.changes %}
+{% for field in item.change.changes %}
   * {{ field.field }}: {{ field.before }} -> {{ field.after }}
 {% endfor %}
 {% else %}
-  * New job added
+  * New job detected
 {% endif %}
+
 {% endfor %}

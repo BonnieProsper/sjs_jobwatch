@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 
 from sjs_sitewatch.domain.diff import DiffResult, JobChange, diff_snapshots
-from sjs_sitewatch.domain.explain import explain_job_change, job_change_severity
+from sjs_sitewatch.domain.explain import explain_job_change, job_change_severity # replace with severity
 from sjs_sitewatch.storage.filesystem import FilesystemSnapshotStore
 from sjs_sitewatch.alerts.filters import is_ict_job
 from sjs_sitewatch.alerts.dispatcher import dispatch

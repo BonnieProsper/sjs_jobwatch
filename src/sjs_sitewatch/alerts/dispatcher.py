@@ -4,6 +4,7 @@ from sjs_sitewatch.alerts.models import ScoredChange
 from sjs_sitewatch.alerts.severity import Severity, SeverityCalculator
 from sjs_sitewatch.domain.diff import DiffResult
 from sjs_sitewatch.domain.trends import TrendReport
+from sjs_sitewatch.users.models import AlertSubscription
 
 
 class AlertDispatcher:
@@ -31,10 +32,36 @@ class AlertDispatcher:
             )
 
         return scored
-    
+
     def filter_min_severity(
         self,
         changes: Iterable[ScoredChange],
         min_severity: Severity,
     ) -> List[ScoredChange]:
         return [c for c in changes if c.severity >= min_severity]
+
+
+# -------------------------------------------------
+# Public convenience API (stable entry point)
+# -------------------------------------------------
+
+def dispatch_alert(
+    *,
+    diff: DiffResult,
+    trends: TrendReport,
+    subscription: AlertSubscription,
+) -> List[ScoredChange]:
+    """
+    High-level alert dispatch entry point.
+
+    - scores changes
+    - applies subscription severity filter
+    """
+
+    dispatcher = AlertDispatcher()
+    scored = dispatcher.dispatch(diff=diff, trends=trends)
+
+    return dispatcher.filter_min_severity(
+        scored,
+        subscription.min_severity,
+    )

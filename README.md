@@ -75,6 +75,11 @@ This separation allows:
 - Safe refactors
 - Future web/API extensions
 
+TREND CONTRACT
+
+A trend is a derived signal computed over ≥2 diffs
+A trend never depends on CLI or alert logic
+A trend may downgrade or suppress single-diff severity
 
 
 
