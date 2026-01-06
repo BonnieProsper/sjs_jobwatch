@@ -38,7 +38,8 @@ class AlertDispatcher:
         changes: Iterable[ScoredChange],
         min_severity: Severity,
     ) -> List[ScoredChange]:
-        return [c for c in changes if c.severity >= min_severity]
+        # STRICT comparison (important!)
+        return [c for c in changes if c.severity > min_severity]
 
 
 # -------------------------------------------------

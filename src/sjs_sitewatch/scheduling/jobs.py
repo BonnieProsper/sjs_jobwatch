@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from sjs_sitewatch.alerts.dispatcher import AlertDispatcher
 from sjs_sitewatch.alerts.email import send_email_alert
 from sjs_sitewatch.domain.diff import diff_snapshots
 from sjs_sitewatch.domain.trends import TrendAnalyzer
@@ -23,22 +22,11 @@ def run_alert_job(
     previous, current = snapshots[-2], snapshots[-1]
 
     diff = diff_snapshots(previous.jobs, current.jobs)
-
     trends = TrendAnalyzer(snapshots).analyze()
 
-    dispatcher = AlertDispatcher()
-    scored = dispatcher.dispatch(diff=diff, trends=trends)
-
-    filtered = dispatcher.filter_min_severity(
-        scored,
-        subscription.min_severity,
-    )
-
-    if not filtered:
-        return
-
     send_email_alert(
-        filtered,
+        diff=diff,
+        trends=trends,
         to_email=subscription.email,
         dry_run=dry_run,
     )

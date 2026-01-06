@@ -9,31 +9,12 @@ from sjs_sitewatch.alerts.severity import Severity
 # Job-level filters
 # -------------------------
 
-ICT_KEYWORDS = {
-    "software",
-    "developer",
-    "engineer",
-    "engineering",
-    "it",
-    "information technology",
-    "data",
-    "programmer",
-    "systems",
-    "network",
-    "cloud",
-    "devops",
-    "administrator",
-    "admin",
-}
-
-
-def _safe_text(*values: str | None) -> str:
-    return " ".join(v for v in values if v).lower()
-
 ICT_CATEGORIES = {"ict", "it", "information technology"}
+
 
 def is_ict_job(job: Job) -> bool:
     return (job.category or "").lower() in ICT_CATEGORIES
+
 
 def filter_ict(jobs: Iterable[Job]) -> List[Job]:
     return [job for job in jobs if is_ict_job(job)]
@@ -59,5 +40,5 @@ def filter_by_min_severity(
     return [
         change
         for change in changes
-        if change.severity >= min_severity
+        if change.severity > min_severity
     ]
