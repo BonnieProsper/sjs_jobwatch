@@ -30,11 +30,10 @@ ICT_KEYWORDS = {
 def _safe_text(*values: str | None) -> str:
     return " ".join(v for v in values if v).lower()
 
+ICT_CATEGORIES = {"ict", "it", "information technology"}
 
 def is_ict_job(job: Job) -> bool:
-    text = _safe_text(job.title, job.summary)
-    return any(keyword in text for keyword in ICT_KEYWORDS)
-
+    return (job.category or "").lower() in ICT_CATEGORIES
 
 def filter_ict(jobs: Iterable[Job]) -> List[Job]:
     return [job for job in jobs if is_ict_job(job)]

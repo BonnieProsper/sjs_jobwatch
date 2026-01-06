@@ -1,8 +1,8 @@
-# tests/alerts/test_email_snapshots.py
-
 from pathlib import Path
 
 from sjs_sitewatch.alerts.renderer import AlertRenderer
+from sjs_sitewatch.alerts.models import ScoredChange
+from sjs_sitewatch.alerts.severity import Severity
 from sjs_sitewatch.domain.diff import JobChange, FieldChange
 
 from tests.helpers.jobs import make_job
@@ -30,18 +30,23 @@ def test_render_html_modified_job_snapshot() -> None:
         title="Senior Developer",
     )
 
+    change = JobChange(
+        job_id="job-1",
+        before=before,
+        after=after,
+        changes=[
+            FieldChange(
+                field="title",
+                before="Junior Developer",
+                after="Senior Developer",
+            )
+        ],
+    )
+
     changes = [
-        JobChange(
-            job_id="job-1",
-            before=before,
-            after=after,
-            changes=[
-                FieldChange(
-                    field="title",
-                    before="Junior Developer",
-                    after="Senior Developer",
-                )
-            ],
+        ScoredChange(
+            change=change,
+            severity=Severity.HIGH,
         )
     ]
 
