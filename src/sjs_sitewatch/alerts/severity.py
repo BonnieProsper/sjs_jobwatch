@@ -28,7 +28,7 @@ class SeverityCalculator:
 
         # --- Job added ---
         if change.before is None and change.after is not None:
-            return Severity.HIGH
+            return Severity.MEDIUM
 
         # --- Job removed ---
         if change.before is not None and change.after is None:
@@ -37,17 +37,11 @@ class SeverityCalculator:
         # --- Modified job ---
         if change.before and change.after:
             # Salary change is always high signal
-            if any(
-                sc.job_id == job_id
-                for sc in trends.salary_changes
-            ):
+            if any(sc.job_id == job_id for sc in trends.salary_changes):
                 return Severity.HIGH
 
             # Title change depends on persistence
-            if any(
-                tc.job_id == job_id
-                for tc in trends.title_changes
-            ):
+            if any(tc.job_id == job_id for tc in trends.title_changes):
                 if job_id in trends.persistent_jobs:
                     return Severity.HIGH
                 return Severity.MEDIUM
