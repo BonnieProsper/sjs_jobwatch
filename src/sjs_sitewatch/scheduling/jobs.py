@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from sjs_sitewatch.alerts.dispatcher import AlertDispatcher
-from sjs_sitewatch.alerts.email import send_email_alert
+from sjs_sitewatch.alerts.email import _send_email_from_changes
 from sjs_sitewatch.domain.diff import diff_snapshots
 from sjs_sitewatch.domain.trends import TrendAnalyzer
 from sjs_sitewatch.storage.filesystem import FilesystemSnapshotStore
@@ -40,7 +40,7 @@ def run_alert_job(
     if not filtered_changes:
         return
 
-    send_email_alert(
+    _send_email_from_changes(
         filtered_changes,
         to_email=subscription.email,
         dry_run=dry_run,
