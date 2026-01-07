@@ -16,7 +16,7 @@ class SeverityCalculator:
     - local diff information
     - multi-day trend context
 
-    This logic is intentionally conservative and explainable.
+    Severity rules are explicit, conservative, and test-driven.
     """
 
     def score(
@@ -27,8 +27,9 @@ class SeverityCalculator:
         job_id = change.job_id
 
         # --- Job added ---
+        # New jobs are always high signal
         if change.before is None and change.after is not None:
-            return Severity.MEDIUM
+            return Severity.HIGH
 
         # --- Job removed ---
         if change.before is not None and change.after is None:
@@ -36,17 +37,17 @@ class SeverityCalculator:
 
         # --- Modified job ---
         if change.before and change.after:
-            # Salary change is always high signal
+            # Salary changes are always high signal
             if any(sc.job_id == job_id for sc in trends.salary_changes):
                 return Severity.HIGH
 
-            # Title change depends on persistence
+            # Title changes escalate if job persists over time
             if any(tc.job_id == job_id for tc in trends.title_changes):
                 if job_id in trends.persistent_jobs:
                     return Severity.HIGH
                 return Severity.MEDIUM
 
-            # Persistent job changing at all
+            # Any change to a persistent job is medium signal
             if job_id in trends.persistent_jobs:
                 return Severity.MEDIUM
 
