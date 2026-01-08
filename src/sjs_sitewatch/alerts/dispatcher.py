@@ -1,10 +1,15 @@
-from typing import Iterable, List
+from typing import List
 
 from sjs_sitewatch.alerts.models import ScoredChange
 from sjs_sitewatch.alerts.severity import Severity, SeverityCalculator
 from sjs_sitewatch.domain.diff import DiffResult
 from sjs_sitewatch.domain.trends import TrendReport
 from sjs_sitewatch.users.models import AlertSubscription
+
+__all__ = [
+    "dispatch_alert",
+    "AlertDispatcher",
+]
 
 
 class AlertDispatcher:
@@ -38,7 +43,21 @@ class AlertDispatcher:
         changes: list[ScoredChange],
         min_severity: Severity,
     ) -> list[ScoredChange]:
-        return [c for c in changes if c.severity >= min_severity]
+        filtered: list[ScoredChange] = []
+
+        for c in changes:
+            # New jobs are never delivered to HIGH-only subscriptions
+            if (
+                min_severity == Severity.HIGH
+                and c.change.before is None
+                and c.change.after is not None
+            ):
+                continue
+
+            if c.severity >= min_severity:
+                filtered.append(c)
+
+        return filtered
 
 
 # -------------------------------------------------
