@@ -17,7 +17,7 @@ class Severity(IntEnum):
 
 class SeverityCalculator:
     """
-    Assigns severity to a JobChange using:
+    Assigns severity and explanation to a JobChange using:
     - local diff information
     - multi-day trend context
 
@@ -28,48 +28,58 @@ class SeverityCalculator:
         self,
         change: JobChange,
         trends: TrendReport,
-    ) -> Severity:
+    ) -> tuple[Severity, str]:
         job_id = change.job_id
 
         # -------------------------------------------------
         # Job added → always HIGH
-        #
-        # Rationale:
-        # - Primary alert signal
-        # - Time-sensitive
-        # - Never downgraded by trends
         # -------------------------------------------------
         if change.before is None and change.after is not None:
-            return Severity.HIGH
+            return (
+                Severity.HIGH,
+                "New job posting detected",
+            )
 
         # -------------------------------------------------
         # Job removed → MEDIUM
-        #
-        # Rationale:
-        # - Important, but less urgent than new postings
         # -------------------------------------------------
         if change.before is not None and change.after is None:
-            return Severity.MEDIUM
+            return (
+                Severity.MEDIUM,
+                "Job posting was removed",
+            )
 
         # -------------------------------------------------
         # Modified job → trend-aware scoring
         # -------------------------------------------------
         if change.before is not None and change.after is not None:
-            # Salary change is always high signal
             if any(sc.job_id == job_id for sc in trends.salary_changes):
-                return Severity.HIGH
+                return (
+                    Severity.HIGH,
+                    "Salary changed on an existing job",
+                )
 
-            # Title change depends on persistence
             if any(tc.job_id == job_id for tc in trends.title_changes):
                 if job_id in trends.persistent_jobs:
-                    return Severity.HIGH
-                return Severity.MEDIUM
+                    return (
+                        Severity.HIGH,
+                        "Title changed on a long-running job",
+                    )
+                return (
+                    Severity.MEDIUM,
+                    "Title changed on a recent job",
+                )
 
-            # Any other change on a persistent job
             if job_id in trends.persistent_jobs:
-                return Severity.MEDIUM
+                return (
+                    Severity.MEDIUM,
+                    "Update detected on a long-running job",
+                )
 
         # -------------------------------------------------
         # Everything else
         # -------------------------------------------------
-        return Severity.LOW
+        return (
+            Severity.LOW,
+            "Minor or routine update",
+        )
