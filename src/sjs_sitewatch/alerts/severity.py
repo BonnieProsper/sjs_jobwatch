@@ -24,8 +24,29 @@ class SeverityCalculator:
     Rules are intentionally conservative and explainable.
     """
 
-    def score(
+    # -------------------------------------------------
+    # Public API
+    # -------------------------------------------------
+
+    def score_with_reason(
         self,
+        *,
+        change: JobChange,
+        trends: TrendReport,
+    ) -> tuple[Severity, str]:
+        """
+        Score a JobChange and return both severity and
+        a human-readable explanation.
+        """
+        return self._score(change=change, trends=trends)
+
+    # -------------------------------------------------
+    # Internal implementation
+    # -------------------------------------------------
+
+    def _score(
+        self,
+        *,
         change: JobChange,
         trends: TrendReport,
     ) -> tuple[Severity, str]:
