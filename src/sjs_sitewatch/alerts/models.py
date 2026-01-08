@@ -13,11 +13,12 @@ class ScoredChange:
     """
     JobChange annotated with alert severity and explanation.
 
-    `reason` is a short, human-readable explanation suitable for:
+    'reason' is a short, human-readable explanation suitable for:
     - email alerts
     - CLI output
     - audit/debug logs
     """
+
     change: JobChange
     severity: Severity
-    reason: str
+    reason: str = ""

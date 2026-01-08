@@ -25,8 +25,22 @@ class SeverityCalculator:
     """
 
     # -------------------------------------------------
-    # Public API
+    # Backward-compatible public API
     # -------------------------------------------------
+
+    def score(
+        self,
+        change: JobChange,
+        trends: TrendReport,
+    ) -> Severity:
+        """
+        Legacy API: return severity only.
+        """
+        severity, _ = self._score_with_reason(
+            change=change,
+            trends=trends,
+        )
+        return severity
 
     def score_with_reason(
         self,
@@ -35,16 +49,18 @@ class SeverityCalculator:
         trends: TrendReport,
     ) -> tuple[Severity, str]:
         """
-        Score a JobChange and return both severity and
-        a human-readable explanation.
+        Preferred API: return severity + explanation.
         """
-        return self._score(change=change, trends=trends)
+        return self._score_with_reason(
+            change=change,
+            trends=trends,
+        )
 
     # -------------------------------------------------
     # Internal implementation
     # -------------------------------------------------
 
-    def _score(
+    def _score_with_reason(
         self,
         *,
         change: JobChange,
@@ -52,55 +68,25 @@ class SeverityCalculator:
     ) -> tuple[Severity, str]:
         job_id = change.job_id
 
-        # -------------------------------------------------
-        # Job added → always HIGH
-        # -------------------------------------------------
+        # Job added → HIGH
         if change.before is None and change.after is not None:
-            return (
-                Severity.HIGH,
-                "New job posting detected",
-            )
+            return Severity.HIGH, "New job posting detected"
 
-        # -------------------------------------------------
         # Job removed → MEDIUM
-        # -------------------------------------------------
         if change.before is not None and change.after is None:
-            return (
-                Severity.MEDIUM,
-                "Job posting was removed",
-            )
+            return Severity.MEDIUM, "Job posting was removed"
 
-        # -------------------------------------------------
-        # Modified job → trend-aware scoring
-        # -------------------------------------------------
+        # Modified job
         if change.before is not None and change.after is not None:
             if any(sc.job_id == job_id for sc in trends.salary_changes):
-                return (
-                    Severity.HIGH,
-                    "Salary changed on an existing job",
-                )
+                return Severity.HIGH, "Salary changed on an existing job"
 
             if any(tc.job_id == job_id for tc in trends.title_changes):
                 if job_id in trends.persistent_jobs:
-                    return (
-                        Severity.HIGH,
-                        "Title changed on a long-running job",
-                    )
-                return (
-                    Severity.MEDIUM,
-                    "Title changed on a recent job",
-                )
+                    return Severity.HIGH, "Title changed on a long-running job"
+                return Severity.MEDIUM, "Title changed on a recent job"
 
             if job_id in trends.persistent_jobs:
-                return (
-                    Severity.MEDIUM,
-                    "Update detected on a long-running job",
-                )
+                return Severity.MEDIUM, "Update detected on a long-running job"
 
-        # -------------------------------------------------
-        # Everything else
-        # -------------------------------------------------
-        return (
-            Severity.LOW,
-            "Minor or routine update",
-        )
+        return Severity.LOW, "Minor or routine update"
