@@ -66,3 +66,5 @@ class AlertPipeline:
             ]
 
         return scored
+
+# TODO: ADD (where?): ICT_CATEGORY = "ICT"
