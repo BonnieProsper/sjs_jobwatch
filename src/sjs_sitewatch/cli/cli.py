@@ -4,12 +4,12 @@ import argparse
 import sys
 from pathlib import Path
 
-from sjs_sitewatch.domain.diff import DiffResult, JobChange, diff_snapshots
-from sjs_sitewatch.domain.explain import explain_job_change, job_change_severity # replace with severity
+from sjs_sitewatch.alerts.pipeline import AlertPipeline
+from sjs_sitewatch.domain.diff import DiffResult, diff_snapshots
+from sjs_sitewatch.domain.trends import TrendAnalyzer
 from sjs_sitewatch.storage.filesystem import FilesystemSnapshotStore
-from sjs_sitewatch.alerts.filters import is_ict_job
-from sjs_sitewatch.alerts.dispatcher import dispatch
 from sjs_sitewatch.users.store import SubscriptionStore
+from sjs_sitewatch.alerts.email import send_email_alert
 
 
 # -------------------------
@@ -26,7 +26,7 @@ def parse_args() -> argparse.Namespace:
         "--data-dir",
         type=Path,
         default=Path("data"),
-        help="Directory containing snapshot data (default: ./data)",
+        help="Directory containing snapshot data",
     )
 
     parser.add_argument("--current", action="store_true")
@@ -39,8 +39,6 @@ def parse_args() -> argparse.Namespace:
     )
 
     parser.add_argument("--dry-run", action="store_true")
-    parser.add_argument("--ict-only", action="store_true")
-    parser.add_argument("--region")
 
     parser.add_argument(
         "--subscriptions",
@@ -56,61 +54,11 @@ def parse_args() -> argparse.Namespace:
 # Presentation helpers
 # -------------------------
 
-def present_job_change(change: JobChange) -> None:
-    job = change.after or change.before
-    assert job is not None
-
-    severity = job_change_severity(change)
-    explanations = explain_job_change(change)
-
-    print(f"[{severity.name}] {job.title} (ID: {job.id})")
-
-    for line in explanations:
-        print(f"  - {line}")
-
-    print()
-
-
-def present_diff(diff: DiffResult) -> None:
-    for c in diff.added + diff.removed + diff.modified:
-        present_job_change(c)
-
-
 def present_summary(diff: DiffResult) -> None:
     print(
         f"Added: {len(diff.added)} | "
         f"Removed: {len(diff.removed)} | "
         f"Changed: {len(diff.modified)}"
-    )
-
-
-# -------------------------
-# Filtering
-# -------------------------
-
-def filter_diff(
-    diff: DiffResult,
-    *,
-    ict_only: bool,
-    region: str | None,
-) -> DiffResult:
-    def matches(change: JobChange) -> bool:
-        job = change.after or change.before
-        if job is None:
-            return False
-
-        if ict_only and not is_ict_job(job):
-            return False
-
-        if region and job.region and job.region.lower() != region.lower():
-            return False
-
-        return True
-
-    return DiffResult(
-        added=[c for c in diff.added if matches(c)],
-        removed=[c for c in diff.removed if matches(c)],
-        modified=[c for c in diff.modified if matches(c)],
     )
 
 
@@ -136,29 +84,78 @@ def main() -> None:
         print("Only one snapshot exists — no diffs to show.", file=sys.stderr)
         return
 
-    diff = diff_snapshots(snapshots[-2].jobs, snapshots[-1].jobs)
-
-    diff = filter_diff(
-        diff,
-        ict_only=args.ict_only,
-        region=args.region,
+    diff = diff_snapshots(
+        snapshots[-2].jobs,
+        snapshots[-1].jobs,
     )
-
-    if args.email:
-        store = SubscriptionStore(args.subscriptions)
-        for sub in store.load_all():
-            dispatch(
-                diff=diff,
-                subscription=sub,
-                dry_run=args.dry_run,
-            )
-        return
 
     if args.summary:
         present_summary(diff)
         return
 
-    present_diff(diff)
+    trends = TrendAnalyzer(snapshots).analyze()
+    pipeline = AlertPipeline()
+
+    # -------------------------
+    # Email dispatch mode
+    # -------------------------
+
+    if args.email:
+        subs = SubscriptionStore(args.subscriptions).load_all()
+
+        if not subs:
+            print("No alert subscriptions found.", file=sys.stderr)
+            return
+
+        for sub in subs:
+            changes = pipeline.run(
+                diff=diff,
+                trends=trends,
+                subscription=sub,
+            )
+
+            if not changes:
+                continue
+
+            send_email_alert(
+                diff=diff,
+                trends=trends,
+                to_email=sub.email,
+                dry_run=args.dry_run,
+            )
+
+        return
+
+    # -------------------------
+    # Default: console inspection
+    # -------------------------
+
+    from sjs_sitewatch.alerts.renderer import AlertRenderer
+    from sjs_sitewatch.users.models import AlertSubscription
+    from sjs_sitewatch.alerts.severity import Severity
+
+    # Console inspection intentionally bypasses filtering
+    console_subscription = AlertSubscription(
+        email="console",
+        ict_only=False,
+        region=None,
+        frequency="daily",
+        hour=0,
+        min_severity=Severity.LOW,
+    )
+
+    alerts = pipeline.run(
+        diff=diff,
+        trends=trends,
+        subscription=console_subscription,
+    )
+
+    if not alerts:
+        print("No significant changes detected.")
+        return
+
+    renderer = AlertRenderer()
+    print(renderer.render_text(alerts))
 
 
 if __name__ == "__main__":

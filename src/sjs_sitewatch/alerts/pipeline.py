@@ -1,4 +1,6 @@
-from typing import Iterable, List
+from __future__ import annotations
+
+from typing import List
 
 from sjs_sitewatch.alerts.dispatcher import AlertDispatcher
 from sjs_sitewatch.alerts.models import ScoredChange
@@ -9,28 +11,39 @@ from sjs_sitewatch.users.models import AlertSubscription
 
 class AlertPipeline:
     """
-    End-to-end alert preparation:
-    diff -> severity -> subscription filtering
+    Canonical alert orchestration pipeline.
+
+    Responsibilities:
+    - Apply severity scoring
+    - Apply subscription-level filtering
+    - Produce final ScoredChange list
+
+    This class contains NO I/O and is fully deterministic.
     """
 
     def __init__(self) -> None:
         self._dispatcher = AlertDispatcher()
 
-    def prepare_for_subscription(
+    def run(
         self,
+        *,
         diff: DiffResult,
         trends: TrendReport,
         subscription: AlertSubscription,
     ) -> List[ScoredChange]:
         scored = self._dispatcher.dispatch(diff, trends)
 
-        # Severity filter
+        # -------------------------
+        # Severity filtering
+        # -------------------------
         scored = [
             c for c in scored
             if c.severity >= subscription.min_severity
         ]
 
-        # Region filter (optional)
+        # -------------------------
+        # Region filtering
+        # -------------------------
         if subscription.region:
             scored = [
                 c for c in scored
@@ -40,7 +53,9 @@ class AlertPipeline:
                 )
             ]
 
-        # ICT-only filter
+        # -------------------------
+        # ICT-only filtering
+        # -------------------------
         if subscription.ict_only:
             scored = [
                 c for c in scored
