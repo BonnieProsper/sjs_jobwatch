@@ -19,3 +19,23 @@ def run_service(
         subscriptions_path=subscriptions_path,
         dry_run=dry_run,
     )
+
+
+# TODO: merge/check file:
+from apscheduler.schedulers.blocking import BlockingScheduler
+from sjs_sitewatch.alerts.pipeline import AlertPipeline
+from sjs_sitewatch.users.store import SubscriptionStore
+
+def run_service():
+    scheduler = BlockingScheduler()
+    store = SubscriptionStore(...)
+
+    for sub in store.load():
+        scheduler.add_job(
+            func=run_for_subscription,
+            trigger="interval",
+            days=1 if sub.cadence == "daily" else 7,
+            args=[sub],
+        )
+
+    scheduler.start()

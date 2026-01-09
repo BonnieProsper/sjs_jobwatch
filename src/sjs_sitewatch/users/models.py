@@ -1,3 +1,5 @@
+# TODO: check, e.g cadence/frequency: str??
+
 from __future__ import annotations
 
 from dataclasses import dataclass
