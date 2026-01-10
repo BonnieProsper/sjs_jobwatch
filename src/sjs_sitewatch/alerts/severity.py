@@ -68,6 +68,9 @@ class SeverityCalculator:
     ) -> tuple[Severity, str]:
         job_id = change.job_id
 
+        salary_changed_ids = {sc.job_id for sc in trends.salary_changes}
+        title_changed_ids = {tc.job_id for tc in trends.title_changes}
+
         # Job added → HIGH
         if change.before is None and change.after is not None:
             return Severity.HIGH, "New job posting detected"
@@ -78,10 +81,10 @@ class SeverityCalculator:
 
         # Modified job
         if change.before is not None and change.after is not None:
-            if any(sc.job_id == job_id for sc in trends.salary_changes):
+            if job_id in salary_changed_ids:
                 return Severity.HIGH, "Salary changed on an existing job"
 
-            if any(tc.job_id == job_id for tc in trends.title_changes):
+            if job_id in title_changed_ids:
                 if job_id in trends.persistent_jobs:
                     return Severity.HIGH, "Title changed on a long-running job"
                 return Severity.MEDIUM, "Title changed on a recent job"

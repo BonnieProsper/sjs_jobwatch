@@ -130,23 +130,23 @@ class TrendAnalyzer:
         last_day = all_days[-1]
         total_days = len(all_days)
 
-        persistent_jobs = [
+        persistent_jobs = sorted(
             job_id
             for job_id, days in appearances.items()
             if len(days) == total_days
-        ]
+        )
 
-        new_jobs = [
+        new_jobs = sorted(
             job_id
             for job_id, days in appearances.items()
             if days[0] == last_day
-        ]
+        )
 
-        removed_jobs = [
+        removed_jobs = sorted(
             job_id
             for job_id, days in appearances.items()
             if days[-1] != last_day
-        ]
+        )
 
         return TrendReport(
             job_counts_by_day=job_counts,
