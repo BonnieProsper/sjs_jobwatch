@@ -1,3 +1,5 @@
+# todo: get full cli, console, 
+
 from __future__ import annotations
 
 import argparse
