@@ -9,6 +9,9 @@ from sjs_sitewatch.domain.trends import TrendReport
 from sjs_sitewatch.users.models import AlertSubscription
 
 
+ICT_CATEGORY = "ICT"
+
+
 class AlertPipeline:
     """
     Canonical alert orchestration pipeline.
@@ -37,7 +40,8 @@ class AlertPipeline:
         # Severity filtering
         # -------------------------
         scored = [
-            c for c in scored
+            c
+            for c in scored
             if c.severity >= subscription.min_severity
         ]
 
@@ -46,7 +50,8 @@ class AlertPipeline:
         # -------------------------
         if subscription.region:
             scored = [
-                c for c in scored
+                c
+                for c in scored
                 if (
                     c.change.after
                     and c.change.after.region == subscription.region
@@ -58,13 +63,12 @@ class AlertPipeline:
         # -------------------------
         if subscription.ict_only:
             scored = [
-                c for c in scored
+                c
+                for c in scored
                 if (
                     c.change.after
-                    and c.change.after.category == "ICT"
+                    and c.change.after.category == ICT_CATEGORY
                 )
             ]
 
         return scored
-
-# TODO: ADD (where?): ICT_CATEGORY = "ICT"
