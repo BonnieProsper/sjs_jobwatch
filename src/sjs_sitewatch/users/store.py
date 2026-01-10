@@ -1,5 +1,3 @@
-# TODO: check
-
 from __future__ import annotations
 
 import json
@@ -7,6 +5,7 @@ from pathlib import Path
 from typing import List
 
 from sjs_sitewatch.users.models import AlertSubscription
+from sjs_sitewatch.alerts.severity import Severity
 
 
 class SubscriptionStore:
@@ -22,14 +21,31 @@ class SubscriptionStore:
             return []
 
         raw = json.loads(self.path.read_text(encoding="utf-8"))
-        subs = [AlertSubscription(**item) for item in raw]
+        subs: list[AlertSubscription] = []
 
-        for sub in subs:
+        for item in raw:
+            item["min_severity"] = Severity[item["min_severity"]]
+            sub = AlertSubscription(**item)
             sub.validate()
+            subs.append(sub)
 
         return subs
 
     def save_all(self, subs: List[AlertSubscription]) -> None:
-        payload = [sub.__dict__ for sub in subs]
+        payload = [
+            {
+                "email": sub.email,
+                "ict_only": sub.ict_only,
+                "region": sub.region,
+                "frequency": sub.frequency,
+                "hour": sub.hour,
+                "min_severity": sub.min_severity.name,
+            }
+            for sub in subs
+        ]
+
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        self.path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+        self.path.write_text(
+            json.dumps(payload, indent=2),
+            encoding="utf-8",
+        )

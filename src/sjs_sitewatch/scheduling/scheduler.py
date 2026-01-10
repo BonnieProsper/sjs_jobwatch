@@ -30,21 +30,35 @@ def start_scheduler(
     for sub in subscriptions:
         sub.validate()
 
-        scheduler.add_job(
-            run_alert_job,
-            trigger="cron",
-            id=_job_id(sub),
-            hour=sub.hour,
-            minute=0,
-            replace_existing=True,
-            kwargs={
-                "data_dir": data_dir,
-                "subscription": sub,
-                "dry_run": dry_run,
-            },
-        )
+        if sub.frequency == "weekly":
+            scheduler.add_job(
+                run_alert_job,
+                trigger="cron",
+                id=_job_id(sub),
+                day_of_week="mon",
+                hour=sub.hour,
+                minute=0,
+                replace_existing=True,
+                kwargs={
+                    "data_dir": data_dir,
+                    "subscription": sub,
+                    "dry_run": dry_run,
+                },
+            )
+        else:
+            scheduler.add_job(
+                run_alert_job,
+                trigger="cron",
+                id=_job_id(sub),
+                hour=sub.hour,
+                minute=0,
+                replace_existing=True,
+                kwargs={
+                    "data_dir": data_dir,
+                    "subscription": sub,
+                    "dry_run": dry_run,
+                },
+            )
 
-    print(
-        f"Scheduler started with {len(subscriptions)} subscription(s)"
-    )
+    print(f"Scheduler started with {len(subscriptions)} subscription(s)")
     scheduler.start()

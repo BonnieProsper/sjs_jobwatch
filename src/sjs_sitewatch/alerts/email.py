@@ -5,13 +5,12 @@ import smtplib
 from email.message import EmailMessage
 from typing import Iterable
 
-from sjs_sitewatch.alerts.dispatcher import dispatch_alert
+from sjs_sitewatch.alerts.pipeline import AlertPipeline
 from sjs_sitewatch.alerts.models import ScoredChange
 from sjs_sitewatch.alerts.renderer import AlertRenderer
 from sjs_sitewatch.domain.diff import DiffResult
 from sjs_sitewatch.domain.trends import TrendReport
 from sjs_sitewatch.users.models import AlertSubscription
-from sjs_sitewatch.alerts.severity import Severity
 
 
 SMTP_HOST = "smtp.gmail.com"
@@ -28,44 +27,22 @@ def _require_env(name: str) -> str:
 
 
 # =====================================================
-# Public convenience API (used by tests + scheduler)
+# Public API (used by scheduler / tests)
 # =====================================================
 
 def send_email_alert(
     *,
     diff: DiffResult,
-    to_email: str,
-    trends: TrendReport | None = None,
+    trends: TrendReport,
+    subscription: AlertSubscription,
     dry_run: bool = False,
 ) -> None:
     """
-    High-level email alert entry point.
-
-    - converts diff -> scored changes
-    - applies default subscription rules
-    - sends email (or prints if dry_run)
+    Run the alert pipeline and send an email if changes exist.
     """
-    if dry_run:
-        print("EMAIL (dry run)")
+    pipeline = AlertPipeline()
 
-    if trends is None:
-        trends = TrendReport(
-            job_counts_by_day={},
-            persistent_jobs=[],
-            new_jobs=[],
-            removed_jobs=[],
-            title_changes=[],
-            salary_changes=[],
-        )
-
-    subscription = AlertSubscription(
-        email=to_email,
-        ict_only=False,
-        region=None,
-        min_severity=Severity.LOW,
-    )
-
-    changes = dispatch_alert(
+    changes = pipeline.run(
         diff=diff,
         trends=trends,
         subscription=subscription,
@@ -73,7 +50,7 @@ def send_email_alert(
 
     _send_email_from_changes(
         changes,
-        to_email=to_email,
+        to_email=subscription.email,
         dry_run=dry_run,
     )
 
