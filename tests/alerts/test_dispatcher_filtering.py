@@ -21,7 +21,7 @@ def test_min_severity_filtering():
             severity=Severity.HIGH,
         ),
     ]
-
+    # TODO
     filtered = dispatcher.filter_min_severity(
         changes,
         min_severity=Severity.MEDIUM,

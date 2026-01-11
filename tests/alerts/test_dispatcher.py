@@ -23,6 +23,7 @@ def _empty_trends() -> TrendReport:
     )
 
 
+# TODO: use makejob()
 def test_dispatch_alert_returns_scored_changes() -> None:
     job = Job(
         id="1",

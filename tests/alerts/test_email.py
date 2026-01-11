@@ -33,6 +33,7 @@ def test_send_email_alert_dry_run_modified_job(capsys):
         ],
     )
 
+    # TODO
     send_email_alert(
         diff=diff,
         to_email="test@example.com",
