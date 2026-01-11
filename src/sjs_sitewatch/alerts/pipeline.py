@@ -14,14 +14,13 @@ ICT_CATEGORY = "ICT"
 
 class AlertPipeline:
     """
-    Canonical alert orchestration pipeline.
-
+    Deterministic alert orchestration.
     Responsibilities:
-    - Apply severity scoring
-    - Apply subscription-level filtering
-    - Produce final ScoredChange list
+        - Apply severity scoring
+        - Apply subscription-level filtering
+        - Produce final ScoredChange list
 
-    This class contains NO I/O and is fully deterministic.
+    No I/O.
     """
 
     def __init__(self) -> None:
@@ -36,39 +35,23 @@ class AlertPipeline:
     ) -> List[ScoredChange]:
         scored = self._dispatcher.dispatch(diff, trends)
 
-        # -------------------------
-        # Severity filtering
-        # -------------------------
         scored = [
-            c
-            for c in scored
+            c for c in scored
             if c.severity >= subscription.min_severity
         ]
 
-        # -------------------------
-        # Region filtering
-        # -------------------------
         if subscription.region:
             scored = [
-                c
-                for c in scored
-                if (
-                    c.change.after
-                    and c.change.after.region == subscription.region
-                )
+                c for c in scored
+                if c.change.after
+                and c.change.after.region == subscription.region
             ]
 
-        # -------------------------
-        # ICT-only filtering
-        # -------------------------
         if subscription.ict_only:
             scored = [
-                c
-                for c in scored
-                if (
-                    c.change.after
-                    and c.change.after.category == ICT_CATEGORY
-                )
+                c for c in scored
+                if c.change.after
+                and c.change.after.category == ICT_CATEGORY
             ]
 
         return scored
