@@ -20,7 +20,7 @@ def _serialize(value: Any) -> Any:
     return value
 
 
-def export_csv(jobs: Iterable[Job], path: str) -> None:
+def export_jobs_csv(jobs: Iterable[Job], path: str) -> None:
     """
     Export jobs to CSV using domain field order.
     """
@@ -35,7 +35,7 @@ def export_csv(jobs: Iterable[Job], path: str) -> None:
             )
 
 
-def export_json(jobs: Iterable[Job], path: str) -> None:
+def export_jobs_json(jobs: Iterable[Job], path: str) -> None:
     """
     Export jobs to JSON with safe serialization.
     """

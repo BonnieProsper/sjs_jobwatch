@@ -82,6 +82,14 @@ A trend never depends on CLI or alert logic
 A trend may downgrade or suppress single-diff severity
 
 
+### Exporting job snapshots
+
+You can export any snapshot to CSV or JSON using:
+
+```python
+from sjs_sitewatch.storage.export import export_jobs_csv
+
+
 
 
 - test everything out, test emails/manual lookup etc, clean up repo, commit to git 
