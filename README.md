@@ -90,6 +90,15 @@ You can export any snapshot to CSV or JSON using:
 from sjs_sitewatch.storage.export import export_jobs_csv
 
 
+## Exporting job snapshots
+
+You can export the most recent job snapshot to CSV or JSON:
+
+```bash
+sjs-sitewatch export --format csv --out jobs.csv
+sjs-sitewatch export --format json --out jobs.json
+
+
 
 
 - test everything out, test emails/manual lookup etc, clean up repo, commit to git 

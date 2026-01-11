@@ -13,6 +13,7 @@ from sjs_sitewatch.reporting.console import print_alerts
 from sjs_sitewatch.storage.filesystem import FilesystemSnapshotStore
 from sjs_sitewatch.users.models import AlertSubscription
 from sjs_sitewatch.users.store import SubscriptionStore
+from sjs_sitewatch.cli.export import add_export_subcommand
 
 
 def parse_args() -> argparse.Namespace:
@@ -21,6 +22,9 @@ def parse_args() -> argparse.Namespace:
         description="Track changes in the SJS job market over time",
     )
 
+    subparsers = parser.add_subparsers(dest="command")
+
+    add_export_subcommand(subparsers)
     parser.add_argument("--data-dir", type=Path, default=Path("data"))
     parser.add_argument("--current", action="store_true")
     parser.add_argument("--summary", action="store_true")
@@ -35,6 +39,9 @@ def parse_args() -> argparse.Namespace:
     )
 
     return parser.parse_args()
+
+    # existing arguments stay exactly as-is
+
 
 
 def main() -> None:
