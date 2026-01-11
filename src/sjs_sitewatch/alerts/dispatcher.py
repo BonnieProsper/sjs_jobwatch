@@ -1,3 +1,4 @@
+# TODO: delete dispatcher but its used in pipeline?
 from typing import Iterable, List
 
 from sjs_sitewatch.alerts.models import ScoredChange
