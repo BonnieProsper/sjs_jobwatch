@@ -46,6 +46,16 @@ class TrendReport:
     title_changes: List[TitleChange]
     salary_changes: List[SalaryChange]
 
+    @classmethod
+    def empty(cls) -> "TrendReport":
+        return cls(
+            job_counts_by_day={},
+            persistent_jobs=[],
+            new_jobs=[],
+            removed_jobs=[],
+            title_changes=[],
+            salary_changes=[],
+        )
 
 # -------------------------
 # Analyzer

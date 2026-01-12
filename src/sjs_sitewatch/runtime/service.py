@@ -1,4 +1,3 @@
-# TODO: do we need, is it redundant??
 from __future__ import annotations
 
 from pathlib import Path
@@ -15,8 +14,11 @@ def run_service(
     """
     Run the long-lived background alerting service.
 
-    This function blocks the process and periodically evaluates
-    snapshots, trends, and alert subscriptions.
+    This function blocks the process and periodically:
+    - loads snapshots
+    - computes diffs + trends
+    - evaluates subscriptions
+    - sends email alerts
     """
     start_scheduler(
         data_dir=data_dir,

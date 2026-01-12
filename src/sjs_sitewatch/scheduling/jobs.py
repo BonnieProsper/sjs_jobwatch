@@ -16,17 +16,11 @@ def run_alert_job(
     dry_run: bool = False,
 ) -> None:
     """
-    Execute a single alert run for one subscription.
-
-    Responsibilities:
-    - load stored snapshots
-    - compute diff + trends
-    - delegate alert decision + delivery
+    Execute one scheduled alert evaluation for a single subscription.
     """
     store = FilesystemSnapshotStore(data_dir)
     snapshots = store.load_all()
 
-    # Need at least two snapshots to compute a diff
     if len(snapshots) < 2:
         return
 
