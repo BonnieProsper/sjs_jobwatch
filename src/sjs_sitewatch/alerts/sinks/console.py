@@ -4,6 +4,7 @@ from typing import Iterable
 
 from sjs_sitewatch.alerts.models import ScoredChange
 from sjs_sitewatch.alerts.severity import Severity
+from sjs_sitewatch.users.models import AlertSubscription
 
 
 class ConsoleSink:
@@ -11,7 +12,12 @@ class ConsoleSink:
     Human-readable console output.
     """
 
-    def send(self, changes: Iterable[ScoredChange]) -> None:
+    def send(
+        self,
+        changes: Iterable[ScoredChange],
+        *,
+        subscription: AlertSubscription | None = None,
+    ) -> None:
         changes = list(changes)
 
         if not changes:
