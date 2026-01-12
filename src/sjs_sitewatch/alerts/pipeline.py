@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import List
 
-from sjs_sitewatch.alerts.dispatcher import AlertDispatcher
+from sjs_sitewatch.alerts.scorer import AlertScorer
 from sjs_sitewatch.alerts.models import ScoredChange
 from sjs_sitewatch.domain.diff import DiffResult
 from sjs_sitewatch.domain.trends import TrendReport
@@ -24,7 +24,7 @@ class AlertPipeline:
     """
 
     def __init__(self) -> None:
-        self._dispatcher = AlertDispatcher()
+        self._scorer = AlertScorer()
 
     def run(
         self,
@@ -33,7 +33,7 @@ class AlertPipeline:
         trends: TrendReport,
         subscription: AlertSubscription,
     ) -> List[ScoredChange]:
-        scored = self._dispatcher.dispatch(diff, trends)
+        scored = self._scorer.score_all(diff=diff, trends=trends)
 
         scored = [
             c for c in scored

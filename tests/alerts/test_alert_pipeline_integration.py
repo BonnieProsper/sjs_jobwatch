@@ -1,3 +1,4 @@
+# TODO - use helper etc
 from datetime import date
 
 from sjs_sitewatch.alerts.pipeline import AlertPipeline
