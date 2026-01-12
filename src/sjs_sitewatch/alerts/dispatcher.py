@@ -1,4 +1,4 @@
-# TODO: delete dispatcher but its used in pipeline?
+# TODO: rename to alerts/scorer.py, AlertScorer, dispatch = score_all()
 from typing import Iterable, List
 
 from sjs_sitewatch.alerts.models import ScoredChange
