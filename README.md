@@ -98,6 +98,30 @@ You can export the most recent job snapshot to CSV or JSON:
 sjs-sitewatch export --format csv --out jobs.csv
 sjs-sitewatch export --format json --out jobs.json
 
+## Alert Architecture
+
+Alerts are processed in three stages:
+
+1. **Pipeline**
+   - Diffs + trends → scored, filtered changes
+2. **Renderer**
+   - Pure text/HTML formatting (Jinja templates)
+3. **Sinks**
+   - Side effects (console output, email delivery, etc.)
+
+This separation allows:
+- Deterministic testing
+- Multiple delivery mechanisms
+- Clear responsibility boundaries
+
+## Exporting Job Data
+
+You can export the current snapshot to CSV or JSON:
+
+```bash
+sjs-sitewatch export csv jobs.csv
+sjs-sitewatch export json jobs.json
+
 
 
 
