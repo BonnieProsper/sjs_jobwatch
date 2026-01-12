@@ -122,7 +122,17 @@ You can export the current snapshot to CSV or JSON:
 sjs-sitewatch export csv jobs.csv
 sjs-sitewatch export json jobs.json
 
+Alerts Architecture
+Snapshots → Diff → Trends → Scorer → Pipeline → Sink
 
+
+Scorer: assigns severity + explanation (pure logic)
+
+Pipeline: applies subscription filtering (pure logic)
+
+Sinks: side-effectful delivery (console, email)
+
+This separation keeps the system testable, extensible, and production-grade.
 
 
 - test everything out, test emails/manual lookup etc, clean up repo, commit to git 

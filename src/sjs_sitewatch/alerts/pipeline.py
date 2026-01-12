@@ -15,10 +15,11 @@ ICT_CATEGORY = "ICT"
 class AlertPipeline:
     """
     Deterministic alert orchestration.
+
     Responsibilities:
-        - Apply severity scoring
-        - Apply subscription-level filtering
-        - Produce final ScoredChange list
+    - Apply severity scoring
+    - Apply subscription-level filtering
+    - Produce final ScoredChange list
 
     No I/O.
     """
@@ -33,7 +34,10 @@ class AlertPipeline:
         trends: TrendReport,
         subscription: AlertSubscription,
     ) -> List[ScoredChange]:
-        scored = self._scorer.score_all(diff=diff, trends=trends)
+        scored = self._scorer.score_all(
+            diff=diff,
+            trends=trends,
+        )
 
         scored = [
             c for c in scored
