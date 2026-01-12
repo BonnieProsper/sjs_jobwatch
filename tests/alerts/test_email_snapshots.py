@@ -1,6 +1,5 @@
 from pathlib import Path
 
-# TODO
 from sjs_sitewatch.alerts.renderer import AlertRenderer
 from sjs_sitewatch.alerts.models import ScoredChange
 from sjs_sitewatch.alerts.severity import Severity
