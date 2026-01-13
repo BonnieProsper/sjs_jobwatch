@@ -17,7 +17,7 @@ def run_alert_job(
     dry_run: bool = False,
 ) -> None:
     """
-    Execute one scheduled alert evaluation for a single subscription.
+    Execute a single alert run for one subscription.
     """
     store = FilesystemSnapshotStore(data_dir)
     snapshots = store.load_all()
@@ -31,15 +31,13 @@ def run_alert_job(
     trends = TrendAnalyzer(snapshots).analyze()
 
     pipeline = AlertPipeline()
-    scored_changes = pipeline.run(
+    changes = pipeline.run(
         diff=diff,
         trends=trends,
         subscription=subscription,
     )
 
-    sink = EmailSink(
+    EmailSink(
         to_email=subscription.email,
         dry_run=dry_run,
-    )
-
-    sink.send(scored_changes)
+    ).send(changes)

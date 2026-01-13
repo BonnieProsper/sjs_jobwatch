@@ -43,6 +43,10 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
 
+    if hasattr(args, "func"):
+        args.func(args)
+        return
+
     store = FilesystemSnapshotStore(args.data_dir)
     snapshots = store.load_all()
 
@@ -66,9 +70,6 @@ def main() -> None:
     trends = TrendAnalyzer(snapshots).analyze()
     pipeline = AlertPipeline()
 
-    # -------------------------
-    # Email mode
-    # -------------------------
     if args.email:
         subs = SubscriptionStore(args.subscriptions).load_all()
         if not subs:
@@ -89,9 +90,6 @@ def main() -> None:
 
         return
 
-    # -------------------------
-    # Console mode
-    # -------------------------
     console_sub = AlertSubscription(
         email="console",
         ict_only=False,
@@ -108,7 +106,6 @@ def main() -> None:
     )
 
     ConsoleSink().send(changes)
-
 
 if __name__ == "__main__":
     main()

@@ -1,4 +1,3 @@
-# TODO fix
 from __future__ import annotations
 
 import argparse
@@ -48,11 +47,11 @@ def _run_export(args: argparse.Namespace) -> None:
     if not snapshots:
         raise SystemExit("No snapshots found.")
 
-    jobs = snapshots[-1].jobs
+    jobs = snapshots[-1].jobs.values()
 
     if args.format == "csv":
         export_jobs_csv(jobs, args.out)
     else:
         export_jobs_json(jobs, args.out)
 
-    print(f"Exported {len(jobs)} jobs to {args.out}")
+    print(f"Exported {len(list(jobs))} jobs to {args.out}")
