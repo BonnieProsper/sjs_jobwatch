@@ -1,40 +1,42 @@
-# TODO: fix
-from datetime import date
-
 from sjs_sitewatch.alerts.pipeline import AlertPipeline
-from sjs_sitewatch.domain.diff import DiffResult, JobChange
-from sjs_sitewatch.domain.job import Job
+from sjs_sitewatch.alerts.models import Severity
+from sjs_sitewatch.domain.diff import DiffResult, JobChange, FieldChange
 from sjs_sitewatch.domain.trends import TrendReport
 from sjs_sitewatch.users.models import AlertSubscription
 
+from tests.helpers.jobs import make_job
 
-def test_pipeline_filters_by_severity_and_region():
-    job_before = Job(
-        id="1",
+
+def test_pipeline_scores_and_filters_changes():
+    before = make_job(
+        id="job-1",
         title="Developer",
         region="Auckland",
         category="ICT",
-        pay_min=100000,
-        pay_max=120000,
     )
 
-    job_after = Job(
-        id="1",
+    after = make_job(
+        id="job-1",
         title="Senior Developer",
         region="Auckland",
         category="ICT",
-        pay_min=120000,
-        pay_max=140000,
     )
 
     diff = DiffResult(
         added=[],
         removed=[],
-        changed=[
+        modified=[
             JobChange(
-                job_id="1",
-                before=job_before,
-                after=job_after,
+                job_id="job-1",
+                before=before,
+                after=after,
+                changes=[
+                    FieldChange(
+                        field="title",
+                        before="Developer",
+                        after="Senior Developer",
+                    )
+                ],
             )
         ],
     )
@@ -45,12 +47,13 @@ def test_pipeline_filters_by_severity_and_region():
         email="test@example.com",
         frequency="daily",
         hour=9,
-        min_severity=3,
+        min_severity=Severity.MEDIUM,
         region="Auckland",
         ict_only=True,
     )
 
     pipeline = AlertPipeline()
+
     results = pipeline.run(
         diff=diff,
         trends=trends,
@@ -58,5 +61,7 @@ def test_pipeline_filters_by_severity_and_region():
     )
 
     assert len(results) == 1
-    assert results[0].change.job_id == "1"
-    assert results[0].severity >= 3
+
+    scored = results[0]
+    assert scored.change.job_id == "job-1"
+    assert scored.severity >= Severity.MEDIUM
