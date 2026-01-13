@@ -6,7 +6,7 @@ build-backend = "poetry.core.masonry.api"
 name = "sjs-sitewatch"
 version = "0.1.0"
 description = "Job market monitoring and alerting CLI"
-authors = ["Your Name <you@example.com>"]
+authors = ["Bonnie McConnell <bonniep.mcconnell@gmail.com>"]
 readme = "README.md"
 packages = [{ include = "sjs_sitewatch", from = "src" }]
 
@@ -19,6 +19,8 @@ pytest = "^7.4"
 
 [tool.poetry.scripts]
 sjs-sitewatch = "sjs_sitewatch.cli.cli:main"
+sjs-sitewatch-alerts = "sjs_sitewatch.cli.alerts:alerts"
+
 
 [tool.pytest.ini_options]
 minversion = "7.0"
