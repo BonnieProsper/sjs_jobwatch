@@ -134,6 +134,23 @@ Sinks: side-effectful delivery (console, email)
 
 This separation keeps the system testable, extensible, and production-grade.
 
+## Automatic Alerting Service
+
+SJS Sitewatch includes a background scheduler that automatically emails users
+when relevant job market changes occur.
+
+### How it works
+- Users register alert subscriptions (email, severity, frequency, filters)
+- A scheduler evaluates new snapshots daily or weekly
+- Alerts are scored, filtered, and emailed automatically
+
+### Running the service
+```bash
+python -m sjs_sitewatch.runtime.service \
+  --data-dir data \
+  --subscriptions subscriptions.json
+
+
 
 - test everything out, test emails/manual lookup etc, clean up repo, commit to git 
 
