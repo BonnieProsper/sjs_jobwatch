@@ -1,4 +1,9 @@
-# TODO: not imported anywhere
+"""
+CLI commands for managing alert subscriptions.
+
+This module is intentionally separate from alert execution
+and scheduling logic.
+"""
 from __future__ import annotations
 
 import click
