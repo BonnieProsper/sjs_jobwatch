@@ -3,6 +3,7 @@ from __future__ import annotations
 import csv
 import json
 from datetime import date
+from pathlib import Path
 from typing import Iterable, Any
 
 from sjs_sitewatch.domain.job import Job
@@ -20,11 +21,11 @@ def _serialize(value: Any) -> Any:
     return value
 
 
-def export_jobs_csv(jobs: Iterable[Job], path: str) -> None:
+def export_jobs_csv(jobs: Iterable[Job], path: Path) -> None:
     """
     Export jobs to CSV using domain field order.
     """
-    with open(path, "w", newline="", encoding="utf-8") as f:
+    with path.open("w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         writer.writerow(_FIELDS)
 
@@ -35,7 +36,7 @@ def export_jobs_csv(jobs: Iterable[Job], path: str) -> None:
             )
 
 
-def export_jobs_json(jobs: Iterable[Job], path: str) -> None:
+def export_jobs_json(jobs: Iterable[Job], path: Path) -> None:
     """
     Export jobs to JSON with safe serialization.
     """
@@ -47,5 +48,5 @@ def export_jobs_json(jobs: Iterable[Job], path: str) -> None:
         for job in jobs
     ]
 
-    with open(path, "w", encoding="utf-8") as f:
+    with path.open("w", encoding="utf-8") as f:
         json.dump(payload, f, indent=2, ensure_ascii=False)

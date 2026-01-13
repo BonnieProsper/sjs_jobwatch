@@ -19,7 +19,6 @@ pytest = "^7.4"
 
 [tool.poetry.scripts]
 sjs-sitewatch = "sjs_sitewatch.cli.cli:main"
-sjs-sitewatch-alerts = "sjs_sitewatch.cli.alerts:alerts"
 
 
 [tool.pytest.ini_options]
