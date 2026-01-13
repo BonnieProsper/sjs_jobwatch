@@ -1,19 +1,15 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Iterable
 
 from sjs_sitewatch.alerts.models import ScoredChange
 
 
 class AlertSink(ABC):
     """
-    Output sink for scored alert changes.
-
-    Sinks perform I/O only.
-    They do NOT score, filter, or transform alert meaning.
+    Delivery endpoint for alerts (email, console, slack, etc).
     """
 
     @abstractmethod
-    def send(self, changes: Iterable[ScoredChange]) -> None:
-        ...
+    def send(self, changes: list[ScoredChange]) -> None:
+        raise NotImplementedError
