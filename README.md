@@ -181,5 +181,24 @@ dry-run
 
 background service
 
+            ┌────────────┐
+            │ Snapshots  │
+            │ (Filesystem)│
+            └─────┬──────┘
+                  │
+           diff + trends
+                  │
+          ┌───────▼────────┐
+          │ AlertPipeline  │
+          │  - scoring     │
+          │  - filtering   │
+          └───────┬────────┘
+                  │
+          ┌───────▼────────┐
+          │ Delivery       │
+          │  (Email, CLI)  │
+          └────────────────┘
+
+
 - test everything out, test emails/manual lookup etc, clean up repo, commit to git 
 
