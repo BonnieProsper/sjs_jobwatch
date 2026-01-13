@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from sjs_sitewatch.alerts.email import send_email_alert
+from sjs_sitewatch.alerts.pipeline import AlertPipeline
+from sjs_sitewatch.alerts.sinks.email import EmailSink
 from sjs_sitewatch.domain.diff import diff_snapshots
 from sjs_sitewatch.domain.trends import TrendAnalyzer
 from sjs_sitewatch.storage.filesystem import FilesystemSnapshotStore
@@ -29,9 +30,16 @@ def run_alert_job(
     diff = diff_snapshots(previous.jobs, current.jobs)
     trends = TrendAnalyzer(snapshots).analyze()
 
-    send_email_alert(
+    pipeline = AlertPipeline()
+    scored_changes = pipeline.run(
         diff=diff,
         trends=trends,
         subscription=subscription,
+    )
+
+    sink = EmailSink(
+        to_email=subscription.email,
         dry_run=dry_run,
     )
+
+    sink.send(scored_changes)
