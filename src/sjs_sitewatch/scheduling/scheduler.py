@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import logging
 
 from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.triggers.cron import CronTrigger
@@ -8,6 +9,9 @@ from apscheduler.triggers.cron import CronTrigger
 from sjs_sitewatch.scheduling.jobs import run_alert_job
 from sjs_sitewatch.users.models import AlertSubscription
 from sjs_sitewatch.users.store import SubscriptionStore
+
+
+logger = logging.getLogger(__name__)
 
 
 def _job_id(sub: AlertSubscription) -> str:
@@ -28,6 +32,7 @@ def start_scheduler(
     # Once mode (no scheduler)
     # -------------------------
     if run_once:
+        logger.info("Running alerts once for %d subscription(s)", len(subscriptions))
         for sub in subscriptions:
             sub.validate()
             run_alert_job(
@@ -69,5 +74,8 @@ def start_scheduler(
             },
         )
 
-    print(f"Scheduler started with {len(subscriptions)} subscription(s)")
+    logger.info(
+        "Scheduler started with %d subscription(s)",
+        len(subscriptions),
+    )
     scheduler.start()

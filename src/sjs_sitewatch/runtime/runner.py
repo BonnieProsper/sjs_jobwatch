@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 from pathlib import Path
+import logging
 
 from sjs_sitewatch.scheduling.scheduler import start_scheduler
 
+logger = logging.getLogger(__name__)
 
 def run_service(
     *,
@@ -22,6 +24,12 @@ def run_service(
     - evaluates subscriptions
     - sends email alerts
     """
+    logger.info(
+        "Starting alert service (run_once=%s, dry_run=%s)",
+        run_once,
+        dry_run,
+    )
+
     start_scheduler(
         data_dir=data_dir,
         subscriptions_path=subscriptions_path,
