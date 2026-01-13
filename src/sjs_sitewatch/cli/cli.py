@@ -37,6 +37,8 @@ def parse_args() -> argparse.Namespace:
         default=Path("subscriptions.json"),
     )
 
+    parser.add_argument("--once", action="store_true")
+
     return parser.parse_args()
 
 
@@ -109,3 +111,12 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+
+# TODO, where to put this, in runner.py or cli.py: 
+run_service(
+    data_dir=args.data_dir,
+    subscriptions_path=args.subscriptions,
+    dry_run=args.dry_run,
+    run_once=args.once,
+)

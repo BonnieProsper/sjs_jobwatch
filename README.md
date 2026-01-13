@@ -150,7 +150,36 @@ python -m sjs_sitewatch.runtime.service \
   --data-dir data \
   --subscriptions subscriptions.json
 
+Architecture
+Snapshot Store
+   ↓
+Diff + Trends
+   ↓
+AlertScorer
+   ↓
+AlertPipeline
+   ↓
+DeliveryService
+   ↓
+Email / Console
 
+Why this design
+
+pure domain logic
+
+sinks are swappable
+
+scheduler is isolated
+
+testable at every layer
+
+Operations
+
+--once
+
+dry-run
+
+background service
 
 - test everything out, test emails/manual lookup etc, clean up repo, commit to git 
 

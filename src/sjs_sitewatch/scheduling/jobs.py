@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from sjs_sitewatch.alerts.delivery import AlertDeliveryService
 from sjs_sitewatch.alerts.pipeline import AlertPipeline
 from sjs_sitewatch.alerts.sinks.email import EmailSink
 from sjs_sitewatch.domain.diff import diff_snapshots
@@ -17,7 +18,7 @@ def run_alert_job(
     dry_run: bool = False,
 ) -> None:
     """
-    Execute a single alert run for one subscription.
+    Execute a single alert evaluation for one subscription.
     """
     store = FilesystemSnapshotStore(data_dir)
     snapshots = store.load_all()
@@ -37,7 +38,13 @@ def run_alert_job(
         subscription=subscription,
     )
 
-    EmailSink(
-        to_email=subscription.email,
-        dry_run=dry_run,
-    ).send(changes)
+    delivery = AlertDeliveryService(
+        sinks=[
+            EmailSink(
+                to_email=subscription.email,
+                dry_run=dry_run,
+            )
+        ]
+    )
+
+    delivery.deliver(changes)

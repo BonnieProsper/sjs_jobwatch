@@ -19,11 +19,28 @@ def start_scheduler(
     data_dir: Path,
     subscriptions_path: Path,
     dry_run: bool = False,
+    run_once: bool = False,
 ) -> None:
-    scheduler = BlockingScheduler(timezone="UTC")
     store = SubscriptionStore(subscriptions_path)
-
     subscriptions = store.load_all()
+
+    # -------------------------
+    # Once mode (no scheduler)
+    # -------------------------
+    if run_once:
+        for sub in subscriptions:
+            sub.validate()
+            run_alert_job(
+                data_dir=data_dir,
+                subscription=sub,
+                dry_run=dry_run,
+            )
+        return
+
+    # -------------------------
+    # Scheduled mode
+    # -------------------------
+    scheduler = BlockingScheduler(timezone="UTC")
 
     for sub in subscriptions:
         sub.validate()
