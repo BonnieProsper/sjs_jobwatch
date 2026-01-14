@@ -232,6 +232,18 @@ engineering systems:
 This makes the project both **useful** and **representative of real
 backend engineering work**.
 
+
+ARCHITECTURE DIAGRAM
+Ingestion → Snapshot Store → Diff Engine → Scorer
+                                 ↓
+                              Filters
+                                 ↓
+                              Renderer
+                                 ↓
+                           Alert Sinks
+                        (Console / Email)
+
+
 ## Running as a background service
 
 ### Linux (systemd)
