@@ -1,33 +1,26 @@
 from __future__ import annotations
 
-import os
-import smtplib
 import logging
+import smtplib
 from email.message import EmailMessage
 from typing import Iterable
 
+from sjs_sitewatch import config
 from sjs_sitewatch.alerts.models import ScoredChange
 from sjs_sitewatch.alerts.renderer import AlertRenderer
 from sjs_sitewatch.alerts.sinks.base import AlertSink
 
 log = logging.getLogger(__name__)
 
-SMTP_HOST = os.environ.get("SMTP_HOST", "smtp.gmail.com")
-SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
-
-
-def _require_env(name: str) -> str:
-    try:
-        return os.environ[name]
-    except KeyError as exc:
-        raise RuntimeError(
-            f"Missing required environment variable: {name}"
-        ) from exc
-
 
 class EmailSink(AlertSink):
     """
     Email delivery sink.
+
+    Responsibilities:
+    - render alert content
+    - deliver via SMTP
+    - support dry-run mode
     """
 
     def __init__(
@@ -35,8 +28,8 @@ class EmailSink(AlertSink):
         *,
         to_email: str,
         dry_run: bool = False,
-        smtp_host: str = SMTP_HOST,
-        smtp_port: int = SMTP_PORT,
+        smtp_host: str = config.SMTP_HOST,
+        smtp_port: int = config.SMTP_PORT,
     ) -> None:
         self._to_email = to_email
         self._dry_run = dry_run
@@ -49,7 +42,14 @@ class EmailSink(AlertSink):
         if not changes:
             return
 
+        if not config.GMAIL_ADDRESS or not config.GMAIL_APP_PASSWORD:
+            raise RuntimeError(
+                "Missing email credentials. "
+                "Set GMAIL_ADDRESS and GMAIL_APP_PASSWORD."
+            )
+
         msg = EmailMessage()
+        msg["From"] = config.GMAIL_ADDRESS
         msg["To"] = self._to_email
         msg["Subject"] = self._renderer.render_subject(changes)
 
@@ -63,14 +63,13 @@ class EmailSink(AlertSink):
             log.info("Dry-run email to %s:\n%s", self._to_email, msg)
             return
 
-        sender = _require_env("GMAIL_ADDRESS")
-        password = _require_env("GMAIL_APP_PASSWORD")
-        msg["From"] = sender
-
         try:
             with smtplib.SMTP(self._smtp_host, self._smtp_port) as server:
                 server.starttls()
-                server.login(sender, password)
+                server.login(
+                    config.GMAIL_ADDRESS,
+                    config.GMAIL_APP_PASSWORD,
+                )
                 server.send_message(msg)
         except smtplib.SMTPException as exc:
             raise RuntimeError(

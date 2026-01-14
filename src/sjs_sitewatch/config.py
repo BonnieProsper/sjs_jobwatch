@@ -1,14 +1,16 @@
+from __future__ import annotations
+
 """
 Central configuration defaults for sjs_sitewatch.
 
-This module is intentionally minimal and filesystem-safe.
+This module is intentionally minimal, import-safe, and side-effect free.
 """
 
+import os
 from pathlib import Path
 
-
 # -------------------------
-# Paths
+# Project paths
 # -------------------------
 
 PROJECT_ROOT = Path(__file__).resolve().parent
@@ -28,8 +30,19 @@ def ensure_directories() -> None:
 
 
 # -------------------------
-# Defaults
+# Defaults / filters
 # -------------------------
 
 DEFAULT_REGION: str | None = None
-DEFAULT_ICT_ONLY: bool = False
+DEFAULT_ICT_ONLY: bool = True
+
+
+# -------------------------
+# Email / SMTP
+# -------------------------
+
+SMTP_HOST: str = os.getenv("SMTP_HOST", "smtp.gmail.com")
+SMTP_PORT: int = int(os.getenv("SMTP_PORT", "587"))
+
+GMAIL_ADDRESS: str | None = os.getenv("GMAIL_ADDRESS")
+GMAIL_APP_PASSWORD: str | None = os.getenv("GMAIL_APP_PASSWORD")

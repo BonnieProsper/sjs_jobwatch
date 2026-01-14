@@ -243,6 +243,19 @@ Ingestion → Snapshot Store → Diff Engine → Scorer
                            Alert Sinks
                         (Console / Email)
 
+## Email Alerts Setup
+
+This project uses Gmail SMTP with App Passwords.
+
+Required environment variables:
+- GMAIL_ADDRESS
+- GMAIL_APP_PASSWORD
+- SMTP_HOST (optional)
+- SMTP_PORT (optional)
+
+Example (Linux/macOS):
+export GMAIL_ADDRESS="you@gmail.com"
+export GMAIL_APP_PASSWORD="xxxx xxxx xxxx xxxx"
 
 ## Running as a background service
 

@@ -19,7 +19,7 @@ click = "^8.1"
 pytest = "^7.4"
 
 [tool.poetry.scripts]
-sjs-sitewatch = "sjs_sitewatch.cli.cli:main"
+sjs-sitewatch = "sjs_sitewatch.cli.main:main"
 sjs-sitewatch-run = "sjs_sitewatch.cli.run:run"
 
 
