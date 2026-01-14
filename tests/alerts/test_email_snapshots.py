@@ -55,6 +55,5 @@ def test_render_html_modified_job_snapshot() -> None:
     snapshot = (SNAPSHOTS_DIR / "email_modified_job.html").read_text(
         encoding="utf-8"
     )
-    print(renderer.render_html(changes))
+
     assert normalize_html(html) == normalize_html(snapshot)
- 

@@ -260,3 +260,4 @@ sudo systemctl start sitewatch
 
 - test everything out, test emails/manual lookup etc, clean up repo, commit to git 
 
+# TODO: add region based filtering, parse down entire repo, unneeded code and files etc

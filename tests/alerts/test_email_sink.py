@@ -1,5 +1,4 @@
-import io
-from contextlib import redirect_stdout
+import logging
 
 from sjs_sitewatch.alerts.sinks.email import EmailSink
 from sjs_sitewatch.alerts.models import ScoredChange
@@ -9,7 +8,7 @@ from sjs_sitewatch.domain.diff import JobChange, FieldChange
 from tests.helpers.jobs import make_job
 
 
-def test_email_sink_dry_run_outputs_message():
+def test_email_sink_dry_run_logs_message(caplog):
     before = make_job(title="Developer")
     after = make_job(title="Senior Developer")
 
@@ -35,10 +34,8 @@ def test_email_sink_dry_run_outputs_message():
         dry_run=True,
     )
 
-    buf = io.StringIO()
-    with redirect_stdout(buf):
+    with caplog.at_level(logging.INFO):
         sink.send([change])
 
-    output = buf.getvalue()
-    assert "EMAIL (dry run)" in output
-    assert "Senior Developer" in output
+    assert "Dry-run email to test@example.com" in caplog.text
+    assert "Senior Developer" in caplog.text
