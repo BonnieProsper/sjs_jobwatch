@@ -200,5 +200,63 @@ background service
           └────────────────┘
 
 
+## Why this project exists
+
+Job boards change constantly — listings appear, disappear, and mutate
+without any explanation. For job seekers, this creates uncertainty and
+manual effort: refreshing pages, re-running searches, and missing
+important changes.
+
+**sjs_sitewatch** exists to solve a specific, real problem:
+
+> Detect meaningful changes in job listings over time and notify users
+> automatically, reliably, and explainably.
+
+This project was intentionally designed as a **production-style backend
+service**, not a demo or script. Its goals are to demonstrate:
+
+- Snapshot-based data modeling (immutable historical records)
+- Deterministic diffing and trend analysis
+- Subscription-driven alert evaluation
+- Pluggable notification sinks (email, filesystem, dry-run)
+- Long-running scheduling with safe one-shot execution
+- Testability of time, IO, and side effects
+
+The architecture mirrors patterns used in real data and platform
+engineering systems:
+- append-only storage
+- pure domain logic
+- side-effect isolation
+- explicit scheduling boundaries
+
+This makes the project both **useful** and **representative of real
+backend engineering work**.
+
+## Running as a background service
+
+### Linux (systemd)
+
+Create a service file:
+
+```ini
+[Unit]
+Description=SJS Sitewatch
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/sjs-sitewatch run
+Restart=always
+User=sitewatch
+WorkingDirectory=/opt/sitewatch
+
+[Install]
+WantedBy=multi-user.target
+
+Enable and start
+
+sudo systemctl enable sitewatch
+sudo systemctl start sitewatch
+
+
 - test everything out, test emails/manual lookup etc, clean up repo, commit to git 
 

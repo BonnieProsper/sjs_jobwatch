@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 from pathlib import Path
-import logging # TODO - use logging.py instead/remove logging
+import logging
 
+from sjs_sitewatch.logging import configure_logging
 from sjs_sitewatch.scheduling.scheduler import start_scheduler
 
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
+
 
 def run_service(
     *,
@@ -13,19 +15,16 @@ def run_service(
     subscriptions_path: Path,
     dry_run: bool = False,
     run_once: bool = False,
+    verbose: bool = False,
 ) -> None:
     """
-    Run the long-lived background alerting service 
+    Run the long-lived background alerting service
     or execute a single evaluation pass.
-
-    This function blocks the process and periodically:
-    - loads snapshots
-    - computes diffs + trends
-    - evaluates subscriptions
-    - sends email alerts
     """
-    logger.info(
-        "Starting alert service (run_once=%s, dry_run=%s)",
+    configure_logging(verbose=verbose)
+
+    log.info(
+        "Starting sitewatch service (run_once=%s, dry_run=%s)",
         run_once,
         dry_run,
     )
