@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import smtplib
+import logging
 from email.message import EmailMessage
 from typing import Iterable
 
@@ -9,6 +10,7 @@ from sjs_sitewatch.alerts.models import ScoredChange
 from sjs_sitewatch.alerts.renderer import AlertRenderer
 from sjs_sitewatch.alerts.sinks.base import AlertSink
 
+log = logging.getLogger(__name__)
 
 SMTP_HOST = os.environ.get("SMTP_HOST", "smtp.gmail.com")
 SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
@@ -26,13 +28,6 @@ def _require_env(name: str) -> str:
 class EmailSink(AlertSink):
     """
     Email delivery sink.
-
-    Responsibilities:
-    - render scored alert changes
-    - deliver via SMTP
-    - support dry-run mode
-
-    Assumes changes are already scored and filtered.
     """
 
     def __init__(
@@ -65,9 +60,7 @@ class EmailSink(AlertSink):
         )
 
         if self._dry_run:
-            print("=== EMAIL (dry run) ===")
-            print(msg)
-            print("======================")
+            log.info("Dry-run email to %s:\n%s", self._to_email, msg)
             return
 
         sender = _require_env("GMAIL_ADDRESS")

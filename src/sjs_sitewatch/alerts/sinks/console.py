@@ -1,15 +1,18 @@
 from __future__ import annotations
 
+import logging
 from typing import Iterable
 
 from sjs_sitewatch.alerts.models import ScoredChange
 from sjs_sitewatch.alerts.severity import Severity
 from sjs_sitewatch.users.models import AlertSubscription
 
+log = logging.getLogger(__name__)
+
 
 class ConsoleSink:
     """
-    Human-readable console output.
+    Human-readable console output sink.
     """
 
     def send(
@@ -21,18 +24,20 @@ class ConsoleSink:
         changes = list(changes)
 
         if not changes:
-            print("No significant changes detected.")
+            log.info("No significant changes detected.")
             return
 
         for c in changes:
-            print(
-                f"[{c.severity.name}] "
-                f"{c.change.job_id} — {c.reason}"
+            log.info(
+                "[%s] %s — %s",
+                c.severity.name,
+                c.change.job_id,
+                c.reason,
             )
 
-        self._print_summary(changes)
+        self._log_summary(changes)
 
-    def _print_summary(self, changes: list[ScoredChange]) -> None:
+    def _log_summary(self, changes: list[ScoredChange]) -> None:
         counts = {
             Severity.HIGH: 0,
             Severity.MEDIUM: 0,
@@ -42,9 +47,9 @@ class ConsoleSink:
         for c in changes:
             counts[c.severity] += 1
 
-        print(
-            f"\nSummary: "
-            f"HIGH={counts[Severity.HIGH]}, "
-            f"MEDIUM={counts[Severity.MEDIUM]}, "
-            f"LOW={counts[Severity.LOW]}"
+        log.info(
+            "Summary: HIGH=%d, MEDIUM=%d, LOW=%d",
+            counts[Severity.HIGH],
+            counts[Severity.MEDIUM],
+            counts[Severity.LOW],
         )
