@@ -4,7 +4,6 @@ import click
 from pathlib import Path
 
 from sjs_sitewatch.runtime.runner import run_service
-from sjs_sitewatch.logging import configure_logging
 
 
 @click.command()
@@ -23,7 +22,7 @@ from sjs_sitewatch.logging import configure_logging
 @click.option(
     "--dry-run",
     is_flag=True,
-    help="Do not send emails; log instead",
+    help="Do not send alerts; log instead",
 )
 @click.option(
     "--once",
@@ -31,23 +30,22 @@ from sjs_sitewatch.logging import configure_logging
     help="Run alerts once and exit (no scheduler)",
 )
 @click.option(
-    "--log-level",
-    default="INFO",
-    help="Logging level (DEBUG, INFO, WARNING, ERROR)",
+    "--verbose",
+    is_flag=True,
+    help="Enable debug logging",
 )
 def run(
     data_dir: Path,
     subscriptions: Path,
     dry_run: bool,
     once: bool,
-    log_level: str,
+    verbose: bool,
 ) -> None:
     """Run the sitewatch alert service."""
-    configure_logging(log_level)
-
     run_service(
         data_dir=data_dir,
         subscriptions_path=subscriptions,
         dry_run=dry_run,
         run_once=once,
+        verbose=verbose,
     )
