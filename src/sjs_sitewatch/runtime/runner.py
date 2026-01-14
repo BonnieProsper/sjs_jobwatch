@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-import logging
+import logging # TODO - use logging.py instead/remove logging
 
 from sjs_sitewatch.scheduling.scheduler import start_scheduler
 
