@@ -5,6 +5,7 @@ from typing import Iterable
 
 from sjs_sitewatch.alerts.models import ScoredChange
 from sjs_sitewatch.alerts.severity import Severity
+from sjs_sitewatch.users.models import AlertSubscription    
 
 log = logging.getLogger(__name__)
 
@@ -15,7 +16,12 @@ class ConsoleSink:
     Intended for CLI usage and dry-runs.
     """
 
-    def send(self, changes: Iterable[ScoredChange]) -> None:
+    def send(
+            self, 
+             changes: Iterable[ScoredChange],
+             *,
+             subscription: AlertSubscription | None = None
+    ) -> None:
         changes = list(changes)
 
         if not changes:
@@ -30,9 +36,11 @@ class ConsoleSink:
                 c.change.job_id,
                 c.reason,
             )
+            line = f"[{c.severity.name}] {c.change.job_id} — {c.reason}"
+            print(line)
 
             # Print for user-visible CLI output (tests rely on this)
-            if c.change.after and c.change.after.title:
+            if c.change.after:
                 print(c.change.after.title)
 
         self._log_summary(changes)

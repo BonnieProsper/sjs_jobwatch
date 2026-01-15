@@ -42,7 +42,7 @@ DEFAULT_ICT_ONLY: bool = True
 # -------------------------
 
 SMTP_HOST: str = os.getenv("SMTP_HOST", "smtp.gmail.com")
-SMTP_PORT: int = int(os.getenv("SMTP_PORT", "587"))
+SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
 
 GMAIL_ADDRESS: str | None = os.getenv("GMAIL_ADDRESS")
 GMAIL_APP_PASSWORD: str | None = os.getenv("GMAIL_APP_PASSWORD")

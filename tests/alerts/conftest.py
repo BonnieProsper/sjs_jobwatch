@@ -4,6 +4,14 @@ import threading
 import time
 import pytest
 
+@pytest.fixture
+def temp_dir(tmp_path):
+    return tmp_path
+
+@pytest.fixture
+def sample_snapshots(snapshot_dir):
+    return snapshot_dir
+
 
 class DummySMTPServer(smtpd.SMTPServer):
     def __init__(self, *args, **kwargs):

@@ -4,7 +4,7 @@ import sys
 
 def test_cli_help_runs():
     result = subprocess.run(
-        [sys.executable, "-m", "sjs_sitewatch.cli.cli", "--help"],
+        [sys.executable, "-m", "sjs_sitewatch.cli.main", "--help"],
         capture_output=True,
         text=True,
     )

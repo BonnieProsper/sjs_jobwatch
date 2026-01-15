@@ -56,6 +56,6 @@ class AlertPipeline:
                 c for c in scored
                 if c.change.after
                 and c.change.after.category == ICT_CATEGORY
-            ]
+            ]   
 
         return scored

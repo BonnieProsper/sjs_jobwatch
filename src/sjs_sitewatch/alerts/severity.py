@@ -14,6 +14,11 @@ class Severity(IntEnum):
     MEDIUM = 2
     HIGH = 3
 
+    @classmethod
+    def from_string(cls, value: str) -> "Severity":
+        return cls(value.lower())
+
+
 
 class SeverityCalculator:
     """
