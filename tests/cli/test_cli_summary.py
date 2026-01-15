@@ -17,7 +17,7 @@ def test_cli_summary_runs_empty(tmp_path, monkeypatch):
     monkeypatch.setenv("SJS_SITEWATCH_DATA_DIR", str(tmp_path))
 
     result = subprocess.run(
-        [sys.executable, "-m", "sjs_sitewatch.cli.cli", "--summary"],
+        [sys.executable, "-m", "sjs_sitewatch.cli.main", "--summary"],
         capture_output=True,
         text=True,
     )

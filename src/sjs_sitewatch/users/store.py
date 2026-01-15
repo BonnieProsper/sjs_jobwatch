@@ -24,7 +24,8 @@ class SubscriptionStore:
         subs: list[AlertSubscription] = []
 
         for item in raw:
-            item["min_severity"] = Severity[item["min_severity"]]
+            severity_value = item.get("min_severity", Severity.MEDIUM.value)
+            item["min_severity"] = Severity(severity_value)
             sub = AlertSubscription(**item)
             sub.validate()
             subs.append(sub)

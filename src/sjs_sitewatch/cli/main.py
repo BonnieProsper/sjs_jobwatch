@@ -8,11 +8,11 @@ from sjs_sitewatch.cli.export import export
 
 
 @click.group()
-def cli() -> None:
+def main() -> None:
     """Track changes in the SJS job market over time."""
     pass
 
 
-cli.add_command(run)
-cli.add_command(alerts)
-cli.add_command(export)
+main.add_command(run)
+main.add_command(alerts)
+main.add_command(export)
