@@ -1,4 +1,4 @@
-from enum import IntEnum
+from enum import Enum
 
 from sjs_sitewatch.domain.diff import JobChange
 from sjs_sitewatch.domain.trends import TrendReport
@@ -9,14 +9,20 @@ __all__ = [
 ]
 
 
-class Severity(IntEnum):
+class Severity(Enum):
     LOW = 1
     MEDIUM = 2
     HIGH = 3
 
     @classmethod
-    def from_string(cls, value: str) -> "Severity":
-        return cls(value.lower())
+    def from_value(cls, value):
+        if isinstance(value, cls):
+            return value
+        if isinstance(value, int):
+            return cls(value)
+        if isinstance(value, str):
+            return cls[value.upper()]
+        raise TypeError(f"Invalid severity value: {value}")
 
 
 

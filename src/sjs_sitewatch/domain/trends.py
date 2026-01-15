@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import date
-from typing import Dict, Iterable, List
+from typing import Dict, Iterable, List, Set
 
 from sjs_sitewatch.domain.job import Job
 from sjs_sitewatch.domain.snapshot import Snapshot
@@ -57,6 +57,7 @@ class TrendReport:
             salary_changes=[],
         )
 
+
 # -------------------------
 # Analyzer
 # -------------------------
@@ -65,31 +66,20 @@ class TrendAnalyzer:
     """
     Analyze multiple snapshots over time and extract multi-day trends.
 
-    Invariants:
-    - snapshots are treated as immutable
-    - job disappearance followed by reappearance counts as removed + new
-    - multiple changes to the same job across days are preserved
+    Rules:
+    - disappearance followed by reappearance counts as removed + new
+    - persistence requires presence on *every* day
     """
 
     def __init__(self, snapshots: Iterable[Snapshot]) -> None:
-        self._snapshots = sorted(
-            snapshots,
-            key=lambda s: s.captured_at,
-        )
+        self._snapshots = sorted(snapshots, key=lambda s: s.captured_at)
 
     def analyze(self) -> TrendReport:
         if not self._snapshots:
-            return TrendReport(
-                job_counts_by_day={},
-                persistent_jobs=[],
-                new_jobs=[],
-                removed_jobs=[],
-                title_changes=[],
-                salary_changes=[],
-            )
+            return TrendReport.empty()
 
         job_counts: Dict[date, int] = {}
-        appearances: Dict[str, List[date]] = defaultdict(list)
+        jobs_by_day: Dict[date, Set[str]] = {}
 
         title_changes: List[TitleChange] = []
         salary_changes: List[SalaryChange] = []
@@ -101,10 +91,9 @@ class TrendAnalyzer:
             current_jobs = snapshot.jobs
 
             job_counts[day] = len(current_jobs)
+            jobs_by_day[day] = set(current_jobs.keys())
 
             for job_id, job in current_jobs.items():
-                appearances[job_id].append(day)
-
                 if job_id in previous_jobs:
                     prev = previous_jobs[job_id]
 
@@ -133,36 +122,47 @@ class TrendAnalyzer:
                             )
                         )
 
-            # IMPORTANT: copy to avoid aliasing
             previous_jobs = dict(current_jobs)
 
-        all_days = sorted(job_counts.keys())
+        all_days = sorted(jobs_by_day.keys())
+        first_day = all_days[0]
         last_day = all_days[-1]
-        total_days = len(all_days)
 
-        persistent_jobs = sorted(
-            job_id
-            for job_id, days in appearances.items()
-            if len(days) == total_days
-        )
+        all_job_ids = set().union(*jobs_by_day.values())
 
-        new_jobs = sorted(
-            job_id
-            for job_id, days in appearances.items()
-            if days[0] == last_day
-        )
+        persistent_jobs: List[str] = []
+        new_jobs: List[str] = []
+        removed_jobs: List[str] = []
 
-        removed_jobs = sorted(
-            job_id
-            for job_id, days in appearances.items()
-            if days[-1] != last_day
-        )
+        for job_id in all_job_ids:
+            present_days = [d for d in all_days if job_id in jobs_by_day[d]]
+
+            if len(present_days) == len(all_days):
+                persistent_jobs.append(job_id)
+
+            if job_id in jobs_by_day[last_day] and job_id not in jobs_by_day[first_day]:
+                new_jobs.append(job_id)
+
+            if job_id not in jobs_by_day[last_day] and job_id in jobs_by_day[first_day]:
+                removed_jobs.append(job_id)
+
+            # gap detection → removed + new
+            if len(present_days) >= 2:
+                for d1, d2 in zip(present_days, present_days[1:]):
+                    if (d2 - d1).days > 1:
+                        if job_id not in new_jobs:
+                            new_jobs.append(job_id)
+                        if job_id not in removed_jobs:
+                            removed_jobs.append(job_id)
+                        if job_id in persistent_jobs:
+                            persistent_jobs.remove(job_id)
+                        break
 
         return TrendReport(
             job_counts_by_day=job_counts,
-            persistent_jobs=persistent_jobs,
-            new_jobs=new_jobs,
-            removed_jobs=removed_jobs,
+            persistent_jobs=sorted(persistent_jobs),
+            new_jobs=sorted(set(new_jobs)),
+            removed_jobs=sorted(set(removed_jobs)),
             title_changes=title_changes,
             salary_changes=salary_changes,
         )
