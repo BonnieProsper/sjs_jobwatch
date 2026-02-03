@@ -16,3 +16,6 @@ def main() -> None:
 main.add_command(run)
 main.add_command(alerts)
 main.add_command(export)
+
+if __name__ == "__main__":
+    main()

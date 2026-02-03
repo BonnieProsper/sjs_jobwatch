@@ -41,7 +41,7 @@ class AlertPipeline:
 
         scored = [
             c for c in scored
-            if c.severity >= subscription.min_severity
+            if c.severity >= subscription.min_severity.value
         ]
 
         if subscription.region:

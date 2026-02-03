@@ -30,6 +30,11 @@ def start_scheduler(
     # -------------------------
     # Once mode (no scheduler)
     # -------------------------
+    log.info(
+        "Scheduler started (run_once=%s)",
+        run_once,
+    )
+
     if run_once:
         log.info(
             "Running alerts once for %d subscription(s)",

@@ -9,8 +9,15 @@ def temp_dir(tmp_path):
     return tmp_path
 
 @pytest.fixture
-def sample_snapshots(snapshot_dir):
-    return snapshot_dir
+def sample_snapshots(tmp_path):
+    prev = tmp_path / "prev.json"
+    curr = tmp_path / "curr.json"
+
+    prev.write_text(PREV_SNAPSHOT_JSON)
+    curr.write_text(CURR_SNAPSHOT_JSON)
+
+    return prev, curr
+
 
 
 class DummySMTPServer(smtpd.SMTPServer):

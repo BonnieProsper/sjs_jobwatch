@@ -4,6 +4,7 @@ import logging
 import smtplib
 from email.message import EmailMessage
 from typing import Iterable
+from xmlrpc import server
 
 from sjs_sitewatch import config
 from sjs_sitewatch.alerts.models import ScoredChange
@@ -65,7 +66,11 @@ class EmailSink(AlertSink):
 
         try:
             with smtplib.SMTP(self._smtp_host, self._smtp_port) as server:
-                server.starttls()
+                if not self._dry_run:
+                    try:
+                        server.starttls()
+                    except smtplib.SMTPNotSupportedError:
+                        pass
                 server.login(
                     config.GMAIL_ADDRESS,
                     config.GMAIL_APP_PASSWORD,
