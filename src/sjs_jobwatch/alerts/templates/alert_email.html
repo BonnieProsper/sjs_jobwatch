@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SJS Job Changes</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            border-bottom: 3px solid #0066cc;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        h1 {
+            color: #0066cc;
+            margin: 0 0 10px 0;
+            font-size: 28px;
+        }
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+            margin: 0;
+        }
+        .summary {
+            background-color: #f8f9fa;
+            border-left: 4px solid #0066cc;
+            padding: 15px 20px;
+            margin: 20px 0;
+        }
+        .summary h2 {
+            margin: 0 0 10px 0;
+            font-size: 18px;
+            color: #333;
+        }
+        .summary-stats {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        .stat {
+            font-size: 14px;
+        }
+        .stat strong {
+            color: #0066cc;
+            font-size: 18px;
+        }
+        .section {
+            margin: 30px 0;
+        }
+        .section-title {
+            color: #333;
+            font-size: 20px;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        .section-title .badge {
+            display: inline-block;
+            background-color: #0066cc;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 14px;
+            margin-left: 8px;
+        }
+        .job-card {
+            background-color: #f8f9fa;
+            border-left: 4px solid #0066cc;
+            padding: 15px 20px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        .job-card.removed {
+            border-left-color: #dc3545;
+            background-color: #fff5f5;
+        }
+        .job-card.modified {
+            border-left-color: #ffc107;
+            background-color: #fffef5;
+        }
+        .job-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin: 0 0 8px 0;
+        }
+        .job-employer {
+            color: #666;
+            font-size: 14px;
+            margin: 0 0 10px 0;
+        }
+        .job-meta {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            font-size: 13px;
+            color: #777;
+            margin: 10px 0;
+        }
+        .job-meta span {
+            display: inline-flex;
+            align-items: center;
+        }
+        .changes-list {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #e0e0e0;
+        }
+        .change-item {
+            font-size: 13px;
+            padding: 4px 0;
+            color: #555;
+        }
+        .change-field {
+            font-weight: 600;
+            color: #333;
+        }
+        .link-button {
+            display: inline-block;
+            background-color: #0066cc;
+            color: white !important;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        .link-button:hover {
+            background-color: #0052a3;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #e0e0e0;
+            text-align: center;
+            font-size: 13px;
+            color: #777;
+        }
+        .footer a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔔 SJS Job Changes Alert</h1>
+            <p class="subtitle">{{ period }}</p>
+        </div>
+
+        <div class="summary">
+            <h2>Summary</h2>
+            <div class="summary-stats">
+                <div class="stat">
+                    <strong>{{ added_count }}</strong><br>New Jobs
+                </div>
+                <div class="stat">
+                    <strong>{{ removed_count }}</strong><br>Removed Jobs
+                </div>
+                <div class="stat">
+                    <strong>{{ modified_count }}</strong><br>Modified Jobs
+                </div>
+                <div class="stat">
+                    <strong>{{ total_changes }}</strong><br>Total Changes
+                </div>
+            </div>
+        </div>
+
+        {% if added %}
+        <div class="section">
+            <h2 class="section-title">
+                ✨ New Jobs
+                <span class="badge">{{ added|length }}</span>
+            </h2>
+            {% for change in added %}
+            <div class="job-card">
+                <h3 class="job-title">{{ change.after.title }}</h3>
+                <p class="job-employer">{{ change.after.employer }}</p>
+                <div class="job-meta">
+                    {% if change.after.region %}
+                    <span>📍 {{ change.after.region }}</span>
+                    {% endif %}
+                    {% if change.after.category %}
+                    <span>💼 {{ change.after.category }}</span>
+                    {% endif %}
+                    {% if change.after.pay_min and change.after.pay_max %}
+                    <span>💰 ${{ "{:,.0f}".format(change.after.pay_min) }} - ${{ "{:,.0f}".format(change.after.pay_max) }}</span>
+                    {% endif %}
+                </div>
+                {% if change.after.url %}
+                <a href="{{ change.after.url }}" class="link-button">View Job →</a>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if removed %}
+        <div class="section">
+            <h2 class="section-title">
+                ❌ Removed Jobs
+                <span class="badge">{{ removed|length }}</span>
+            </h2>
+            {% for change in removed %}
+            <div class="job-card removed">
+                <h3 class="job-title">{{ change.before.title }}</h3>
+                <p class="job-employer">{{ change.before.employer }}</p>
+                <div class="job-meta">
+                    {% if change.before.region %}
+                    <span>📍 {{ change.before.region }}</span>
+                    {% endif %}
+                    {% if change.before.category %}
+                    <span>💼 {{ change.before.category }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if modified %}
+        <div class="section">
+            <h2 class="section-title">
+                ✏️ Modified Jobs
+                <span class="badge">{{ modified|length }}</span>
+            </h2>
+            {% for change in modified %}
+            <div class="job-card modified">
+                <h3 class="job-title">{{ change.after.title }}</h3>
+                <p class="job-employer">{{ change.after.employer }}</p>
+                <div class="changes-list">
+                    {% for field_change in change.changes[:5] %}
+                    <div class="change-item">
+                        <span class="change-field">{{ field_change.field }}:</span>
+                        {% if field_change.old_value %}
+                        "{{ field_change.old_value[:50] }}" →
+                        {% else %}
+                        (none) →
+                        {% endif %}
+                        {% if field_change.new_value %}
+                        "{{ field_change.new_value[:50] }}"
+                        {% else %}
+                        (removed)
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                    {% if change.changes|length > 5 %}
+                    <div class="change-item">
+                        <em>+ {{ change.changes|length - 5 }} more changes</em>
+                    </div>
+                    {% endif %}
+                </div>
+                {% if change.after.url %}
+                <a href="{{ change.after.url }}" class="link-button">View Job →</a>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="footer">
+            <p>
+                This alert was generated by SJS JobWatch.<br>
+                To manage your subscription or report issues, please reply to this email.
+            </p>
+            <p>
+                <a href="https://www.sjs.govt.nz/jobs/search/">Visit SJS Job Board</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

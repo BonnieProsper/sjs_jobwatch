@@ -1,288 +1,455 @@
-folder structure
+# SJS JobWatch
 
-src/
-  sjs_sitewatch/
-    __init__.py
+**Monitor and track changes in the SJS New Zealand job board with automated email alerts.**
 
-    cli.py                  # Entry point (argparse / typer)
-    config.py               # Categories, regions, thresholds
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-    ingestion/
-      browser.py            # Fetch HTML
-      extract.py            # Parse raw listings
-      normalize.py          # Normalize into Job models
+---
 
-    domain/
-      job.py                # Job model (dataclass)
-      snapshot.py           # Snapshot = list[Job] + metadata
-      diff.py               # Pure diff logic
-      explain.py            # Field-level explanations
-      trends.py             # Rolling growth, counts
+## 🎯 What Does This Do?
 
-    storage/
-      filesystem.py         # Save/load snapshots (JSON)
+SJS JobWatch automatically:
+- **Scrapes** job listings from the SJS New Zealand public service job board
+- **Tracks** changes over time (new jobs, removed jobs, modified postings)
+- **Sends** email alerts when relevant changes occur
+- **Filters** by region, category, and change severity
+- **Stores** historical snapshots for analysis
 
-    alerts/
-      email.py              # Email formatting + sending
-      filters.py            # Severity/category filtering
+**Perfect for job seekers** who want to stay on top of new opportunities without manually checking the site every day.
 
-    reporting/
-      console.py            # Rich tables
-      export.py             # CSV/JSON export
+---
 
-tests/
-  test_diff.py
-  test_explain.py
-  test_trends.py
-  test_alerts.py
-pyproject.toml
-readme.md
-testing.md
+## ✨ Features
 
+### Core Functionality
+- ✅ **Automated Scraping**: Fetch job listings from SJS with configurable filters
+- ✅ **Change Detection**: Identify new, removed, and modified job postings
+- ✅ **Email Alerts**: Beautiful HTML emails with change summaries
+- ✅ **Flexible Filters**: Region, category, keyword search support
+- ✅ **Historical Tracking**: Keep snapshots of past job boards
+- ✅ **CLI Interface**: Easy-to-use command-line tools
 
+### Technical Highlights
+- 🏗️ **Clean Architecture**: Separation of concerns (scraping → storage → diffing → alerts)
+- 🔒 **Type Safe**: Full type hints with Pydantic models
+- 📊 **Rich Output**: Beautiful terminal tables with the `rich` library
+- 🧪 **Testable**: Pure functions, dependency injection, no global state
+- 📝 **Well Documented**: Comprehensive docstrings and examples
 
-## Email Alerts
+---
 
-SJS SiteWatch can automatically notify users of meaningful job market changes via email, including configurable filters by role type, region, and change severity. Alerts are designed for scheduled execution in production environments.
+## 📦 Installation
 
+### Requirements
+- Python 3.10 or higher
+- Gmail account (for sending email alerts)
 
-## Architecture Overview
-
-SJS SiteWatch is intentionally designed as a layered system:
-
-### Domain Layer
-- Job, Snapshot, DiffResult
-- Deterministic diffing
-- Explainable change severity
-
-### Alerts Layer
-- Pure filtering & dispatch logic
-- No I/O in decision code
-- Email formatting isolated
-
-### Scheduling Layer
-- APScheduler cron-based jobs
-- Stateless job execution
-- Subscriptions persisted to JSON
-
-### CLI Layer
-- Inspection (diffs, summaries)
-- Alert management
-- Dry-run support
-
-This separation allows:
-- Easy testing
-- Safe refactors
-- Future web/API extensions
-
-TREND CONTRACT
-
-A trend is a derived signal computed over ≥2 diffs
-A trend never depends on CLI or alert logic
-A trend may downgrade or suppress single-diff severity
-
-
-### Exporting job snapshots
-
-You can export any snapshot to CSV or JSON using:
-
-```python
-from sjs_sitewatch.storage.export import export_jobs_csv
-
-
-## Exporting job snapshots
-
-You can export the most recent job snapshot to CSV or JSON:
+### Quick Install
 
 ```bash
-sjs-sitewatch export --format csv --out jobs.csv
-sjs-sitewatch export --format json --out jobs.json
+# Clone the repository
+git clone https://github.com/yourusername/sjs-jobwatch.git
+cd sjs-jobwatch
 
-## Alert Architecture
+# Install with pip
+pip install -e .
 
-Alerts are processed in three stages:
+# Or install with optional dev dependencies
+pip install -e ".[dev]"
+```
 
-1. **Pipeline**
-   - Diffs + trends → scored, filtered changes
-2. **Renderer**
-   - Pure text/HTML formatting (Jinja templates)
-3. **Sinks**
-   - Side effects (console output, email delivery, etc.)
-
-This separation allows:
-- Deterministic testing
-- Multiple delivery mechanisms
-- Clear responsibility boundaries
-
-## Exporting Job Data
-
-You can export the current snapshot to CSV or JSON:
+### Verify Installation
 
 ```bash
-sjs-sitewatch export csv jobs.csv
-sjs-sitewatch export json jobs.json
+sjs-jobwatch --help
+```
 
-Alerts Architecture
-Snapshots → Diff → Trends → Scorer → Pipeline → Sink
+---
 
+## 🚀 Quick Start
 
-Scorer: assigns severity + explanation (pure logic)
+### 1. Scrape Your First Snapshot
 
-Pipeline: applies subscription filtering (pure logic)
-
-Sinks: side-effectful delivery (console, email)
-
-This separation keeps the system testable, extensible, and production-grade.
-
-## Automatic Alerting Service
-
-SJS Sitewatch includes a background scheduler that automatically emails users
-when relevant job market changes occur.
-
-### How it works
-- Users register alert subscriptions (email, severity, frequency, filters)
-- A scheduler evaluates new snapshots daily or weekly
-- Alerts are scored, filtered, and emailed automatically
-
-### Running the service
 ```bash
-python -m sjs_sitewatch.runtime.service \
-  --data-dir data \
-  --subscriptions subscriptions.json
+# Scrape all jobs
+sjs-jobwatch scrape
 
-Architecture
-Snapshot Store
-   ↓
-Diff + Trends
-   ↓
-AlertScorer
-   ↓
-AlertPipeline
-   ↓
-DeliveryService
-   ↓
-Email / Console
+# Or filter by region
+sjs-jobwatch scrape --region Auckland
 
-Why this design
+# Or filter by category
+sjs-jobwatch scrape --category ICT
 
-pure domain logic
+# Search with keyword
+sjs-jobwatch scrape --keyword "data analyst"
+```
 
-sinks are swappable
+### 2. View Job Changes
 
-scheduler is isolated
+After running a second scrape, view the differences:
 
-testable at every layer
+```bash
+# Compare latest snapshot with previous one
+sjs-jobwatch diff
 
-Operations
+# Compare with snapshot from 2 scrapes ago
+sjs-jobwatch diff --since 2
 
---once
+# View as plain text instead of table
+sjs-jobwatch diff --format text
+```
 
-dry-run
+### 3. Set Up Email Alerts
 
-background service
+```bash
+# Add your email subscription
+sjs-jobwatch alerts add your.email@example.com \
+    --region Auckland \
+    --category ICT \
+    --frequency daily \
+    --hour 9
 
-            ┌────────────┐
-            │ Snapshots  │
-            │ (Filesystem)│
-            └─────┬──────┘
-                  │
-           diff + trends
-                  │
-          ┌───────▼────────┐
-          │ AlertPipeline  │
-          │  - scoring     │
-          │  - filtering   │
-          └───────┬────────┘
-                  │
-          ┌───────▼────────┐
-          │ Delivery       │
-          │  (Email, CLI)  │
-          └────────────────┘
+# Test the alert (dry run)
+sjs-jobwatch alerts test your.email@example.com --dry-run
 
+# View all subscriptions
+sjs-jobwatch alerts list
+```
 
-## Why this project exists
+### 4. Run the Alert Service
 
-Job boards change constantly — listings appear, disappear, and mutate
-without any explanation. For job seekers, this creates uncertainty and
-manual effort: refreshing pages, re-running searches, and missing
-important changes.
+```bash
+# Run once and exit
+sjs-jobwatch run --once
 
-**sjs_sitewatch** exists to solve a specific, real problem:
+# Run continuously (checks hourly)
+sjs-jobwatch run
 
-> Detect meaningful changes in job listings over time and notify users
-> automatically, reliably, and explainably.
+# Dry run (no emails sent)
+sjs-jobwatch run --dry-run
+```
 
-This project was intentionally designed as a **production-style backend
-service**, not a demo or script. Its goals are to demonstrate:
+---
 
-- Snapshot-based data modeling (immutable historical records)
-- Deterministic diffing and trend analysis
-- Subscription-driven alert evaluation
-- Pluggable notification sinks (email, filesystem, dry-run)
-- Long-running scheduling with safe one-shot execution
-- Testability of time, IO, and side effects
+## 🔧 Configuration
 
-The architecture mirrors patterns used in real data and platform
-engineering systems:
-- append-only storage
-- pure domain logic
-- side-effect isolation
-- explicit scheduling boundaries
+### Email Setup (Required for Alerts)
 
-This makes the project both **useful** and **representative of real
-backend engineering work**.
+SJS JobWatch uses Gmail SMTP to send emails. You'll need to create an **App Password**:
 
+1. Go to [Google Account Settings](https://myaccount.google.com/)
+2. Security → 2-Step Verification → App passwords
+3. Generate a new app password
+4. Set environment variables:
 
-ARCHITECTURE DIAGRAM
-Ingestion → Snapshot Store → Diff Engine → Scorer
-                                 ↓
-                              Filters
-                                 ↓
-                              Renderer
-                                 ↓
-                           Alert Sinks
-                        (Console / Email)
-
-## Email Alerts Setup
-
-This project uses Gmail SMTP with App Passwords.
-
-Required environment variables:
-- GMAIL_ADDRESS
-- GMAIL_APP_PASSWORD
-- SMTP_HOST (optional)
-- SMTP_PORT (optional)
-
-Example (Linux/macOS):
-export GMAIL_ADDRESS="you@gmail.com"
+```bash
+export GMAIL_ADDRESS="your.email@gmail.com"
 export GMAIL_APP_PASSWORD="xxxx xxxx xxxx xxxx"
+```
 
-## Running as a background service
+**On Windows:**
+```powershell
+$env:GMAIL_ADDRESS="your.email@gmail.com"
+$env:GMAIL_APP_PASSWORD="xxxx xxxx xxxx xxxx"
+```
 
-### Linux (systemd)
+**Persistent Setup (Linux/Mac):**
+```bash
+# Add to ~/.bashrc or ~/.zshrc
+echo 'export GMAIL_ADDRESS="your.email@gmail.com"' >> ~/.bashrc
+echo 'export GMAIL_APP_PASSWORD="xxxx xxxx xxxx xxxx"' >> ~/.bashrc
+source ~/.bashrc
+```
 
-Create a service file:
+### Advanced Configuration
 
-```ini
-[Unit]
-Description=SJS Sitewatch
-After=network.target
+Edit `src/sjs_jobwatch/core/config.py` to customize:
+- Request delays and timeouts
+- Snapshot retention policies
+- Email formatting
+- Logging levels
 
-[Service]
-ExecStart=/usr/bin/sjs-sitewatch run
-Restart=always
-User=sitewatch
-WorkingDirectory=/opt/sitewatch
+---
 
-[Install]
-WantedBy=multi-user.target
+## 📚 CLI Reference
 
-Enable and start
+### Scraping
 
-sudo systemctl enable sitewatch
-sudo systemctl start sitewatch
+```bash
+# Basic scrape
+sjs-jobwatch scrape
 
+# With filters
+sjs-jobwatch scrape --region Wellington --category "Policy"
 
-- test everything out, test emails/manual lookup etc, clean up repo, commit to git 
+# With keyword search
+sjs-jobwatch scrape --keyword "senior developer"
+```
 
-# TODO: add region based filtering, parse down entire repo, unneeded code and files etc
+**Available Regions:**
+`All`, `Auckland`, `Wellington`, `Canterbury`, `Bay of Plenty`, `Waikato`, `Otago`, `Hawke's Bay`, `Manawatu-Wanganui`, `Northland`, `Taranaki`, `Nelson`, `Marlborough`, `Southland`, `Gisborne`, `Tasman`, `West Coast`, `Overseas`
+
+**Available Categories:**
+`All`, `ICT`, `Allied Health`, `Corporate`, `Education`, `Engineering`, `Facilities`, `Finance & Accounting`, `Health`, `Human Resources`, `Legal`, `Management`, `Operations`, `Planning`, `Policy`, `Science`, `Social Services`, `Trades & Services`, `Other`
+
+### Viewing Changes
+
+```bash
+# Show differences from latest snapshot
+sjs-jobwatch diff
+
+# Compare with older snapshots
+sjs-jobwatch diff --since 3
+
+# Plain text output
+sjs-jobwatch diff --format text
+```
+
+### Managing Snapshots
+
+```bash
+# List recent snapshots
+sjs-jobwatch list
+
+# List more snapshots
+sjs-jobwatch list --limit 50
+
+# Export latest snapshot
+sjs-jobwatch export csv jobs.csv
+sjs-jobwatch export json jobs.json
+
+# Export older snapshot
+sjs-jobwatch export csv jobs-old.csv --snapshot 5
+```
+
+### Managing Alert Subscriptions
+
+```bash
+# Add subscription
+sjs-jobwatch alerts add email@example.com \
+    --region Auckland \
+    --category ICT \
+    --frequency daily \
+    --hour 9 \
+    --severity medium
+
+# List subscriptions
+sjs-jobwatch alerts list
+
+# Remove subscription
+sjs-jobwatch alerts remove email@example.com
+
+# Test alert
+sjs-jobwatch alerts test email@example.com
+sjs-jobwatch alerts test email@example.com --dry-run
+```
+
+**Alert Options:**
+- `--frequency`: `daily` or `weekly`
+- `--hour`: 0-23 (UTC time)
+- `--severity`: `low`, `medium`, `high`, `critical`
+- `--region`: Filter alerts to specific region
+- `--category`: Filter alerts to specific category
+
+### Running the Service
+
+```bash
+# Run once and exit
+sjs-jobwatch run --once
+
+# Run continuously
+sjs-jobwatch run
+
+# Dry run (no emails)
+sjs-jobwatch run --dry-run --once
+
+# Verbose logging
+sjs-jobwatch run --once -v
+```
+
+---
+
+## 📊 How It Works
+
+### Architecture
+
+```
+┌──────────────┐
+│   Scraper    │  Fetch jobs from SJS website
+└──────┬───────┘
+       │
+       ▼
+┌──────────────┐
+│   Snapshot   │  Save point-in-time snapshot
+└──────┬───────┘
+       │
+       ▼
+┌──────────────┐
+│  Diff Engine │  Compare snapshots
+└──────┬───────┘
+       │
+       ▼
+┌──────────────┐
+│  Filters &   │  Apply subscription filters
+│  Severity    │
+└──────┬───────┘
+       │
+       ▼
+┌──────────────┐
+│Email Renderer│  Generate HTML/text emails
+└──────┬───────┘
+       │
+       ▼
+┌──────────────┐
+│ SMTP Sender  │  Deliver emails
+└──────────────┘
+```
+
+### Data Flow
+
+1. **Scraping**: HTTP request → BeautifulSoup → Extract `__NEXT_DATA__` script → Parse JSON
+2. **Storage**: Snapshot → JSON file with timestamp filename
+3. **Diffing**: Load two snapshots → Compare by job ID → Identify changes
+4. **Filtering**: Apply region/category/severity filters per subscription
+5. **Rendering**: Changes → Jinja2 templates → HTML + text emails
+6. **Delivery**: SMTP → Gmail → Recipient
+
+### Why Not Use Playwright?
+
+The original project used Playwright (headless browser), but the SJS site is server-side rendered with Next.js, which embeds all job data in `<script id="__NEXT_DATA__">` tags. This means we can use simple HTTP requests + BeautifulSoup, which is:
+- ✅ **Faster** (no browser overhead)
+- ✅ **Lighter** (no Chromium dependencies)
+- ✅ **Simpler** (fewer moving parts)
+- ✅ **More reliable** (fewer things to break)
+
+---
+
+## 🗂️ Project Structure
+
+```
+sjs-jobwatch/
+├── src/
+│   └── sjs_jobwatch/
+│       ├── core/              # Domain models and business logic
+│       │   ├── models.py      # Pydantic models (Job, Snapshot, etc.)
+│       │   ├── config.py      # Configuration management
+│       │   └── diff.py        # Diff engine
+│       ├── ingestion/         # Web scraping
+│       │   └── scraper.py     # SJS scraper implementation
+│       ├── storage/           # Persistence
+│       │   └── snapshots.py   # Snapshot storage
+│       ├── alerts/            # Email notifications
+│       │   ├── email.py       # Email rendering and sending
+│       │   ├── subscriptions.py  # Subscription management
+│       │   └── templates/     # Email templates
+│       │       ├── alert_email.html
+│       │       └── alert_email.txt
+│       └── cli/               # Command-line interface
+│           └── main.py        # CLI entry point
+├── data/                      # Data directory (created automatically)
+│   ├── snapshots/            # Historical snapshots
+│   ├── exports/              # Exported data
+│   └── jobwatch.log          # Application logs
+├── tests/                     # Test suite
+├── docs/                      # Additional documentation
+├── pyproject.toml            # Project metadata and dependencies
+├── README.md                 # This file
+└── .gitignore
+```
+
+---
+
+## 🧪 Development
+
+### Running Tests
+
+```bash
+pytest
+pytest -v                    # Verbose
+pytest --cov=sjs_jobwatch   # With coverage
+```
+
+### Code Quality
+
+```bash
+# Format code
+black src/ tests/
+
+# Lint
+ruff check src/ tests/
+
+# Type check
+mypy src/
+```
+
+### Adding Features
+
+The codebase is designed to be extensible:
+
+1. **New scrapers**: Subclass or extend `SJSScraper`
+2. **New filters**: Add methods to `AlertSubscription`
+3. **New output formats**: Add commands to CLI
+4. **New notification channels**: Implement new sinks (e.g., Slack, Discord)
+
+---
+
+## 🐛 Troubleshooting
+
+### "Could not find __NEXT_DATA__ script tag"
+
+The SJS website structure may have changed. Check the HTML source of the jobs page and update the scraper accordingly.
+
+### "Failed to send email"
+
+1. Verify `GMAIL_ADDRESS` and `GMAIL_APP_PASSWORD` are set
+2. Check that you're using an **App Password**, not your regular password
+3. Ensure Gmail SMTP is not blocked by your firewall
+4. Try the test command: `sjs-jobwatch alerts test your@email.com --dry-run`
+
+### "No snapshots found"
+
+Run `sjs-jobwatch scrape` at least once to create initial data.
+
+### Slow scraping
+
+The scraper includes a 2-second delay between requests to be respectful to the server. This is intentional and configurable in `config.py`.
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Here's how:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Make your changes
+4. Add tests
+5. Run quality checks (`black`, `ruff`, `mypy`, `pytest`)
+6. Commit (`git commit -m 'Add amazing feature'`)
+7. Push (`git push origin feature/amazing-feature`)
+8. Open a Pull Request
+
+---
+
+## License
+
+MIT License - see LICENSE file for details.
+
+---
+
+## 🔮 Roadmap
+
+Future enhancements planned:
+- [ ] Web dashboard for viewing trends
+- [ ] Database backend (SQLite/PostgreSQL)
+- [ ] Machine learning for job recommendations
+- [ ] Multi-site support (beyond SJS)
+- [ ] Slack/Discord integrations
+- [ ] Job similarity detection
+- [ ] Salary trend analysis
+- [ ] API for integrations
+
+---
+
+**Happy job hunting! 🎯**

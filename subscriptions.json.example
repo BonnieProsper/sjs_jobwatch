@@ -1,0 +1,12 @@
+[
+  {
+    "email": "bonniep.mcconnell@gmail.com",
+    "region": "Auckland",
+    "category": "ICT",
+    "frequency": "daily",
+    "hour": 9,
+    "min_severity": "medium",
+    "include_descriptions": false,
+    "max_jobs_per_email": 50
+  }
+]

@@ -1,29 +1,91 @@
 [build-system]
-requires = ["poetry-core>=1.8.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["setuptools>=65.0", "wheel"]
+build-backend = "setuptools.build_meta"
 
-[tool.poetry]
-name = "sjs-sitewatch"
-version = "0.1.0"
-description = "Job market monitoring and alerting CLI"
-authors = ["Bonnie McConnell <bonniep.mcconnell@gmail.com>"]
+[project]
+name = "sjs-jobwatch"
+version = "1.0.0"
+description = "Monitor and track changes in the SJS New Zealand job board"
+authors = [{name = "Bonnie McConnell", email = "bonniep.mcconnell@gmail.com"}]
 readme = "README.md"
-packages = [{ include = "sjs_sitewatch", from = "src" }]
+requires-python = ">=3.10"
+license = {text = "MIT"}
+keywords = ["jobs", "scraping", "monitoring", "alerts", "sjs"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
 
-[tool.poetry.dependencies]
-python = ">=3.10"
-apscheduler = "^3.11.2"
-click = "^8.1"
+dependencies = [
+    "requests>=2.31.0",
+    "beautifulsoup4>=4.12.0",
+    "click>=8.1.0",
+    "rich>=13.7.0",
+    "jinja2>=3.1.0",
+    "pydantic>=2.0.0",
+    "python-dateutil>=2.8.0",
+    "apscheduler>=3.10.0",
+]
 
-[tool.poetry.group.dev.dependencies]
-pytest = "^7.4"
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.7.0",
+    "types-requests>=2.31.0",
+    "types-python-dateutil>=2.8.0",
+]
 
-[tool.poetry.scripts]
-sjs-sitewatch = "sjs_sitewatch.cli.main:main"
-sjs-sitewatch-run = "sjs_sitewatch.cli.run:run"
+[project.scripts]
+sjs-jobwatch = "sjs_jobwatch.cli.main:cli"
 
+[project.urls]
+Homepage = "https://github.com/BonnieProsper/sjs-jobwatch"
+Documentation = "https://github.com/BonnieProsper/sjs-jobwatch/blob/main/README.md"
+Repository = "https://github.com/BonnieProsper/sjs-jobwatch"
+
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [tool.pytest.ini_options]
 minversion = "7.0"
-addopts = ["-ra", "--strict-markers", "--strict-config"]
+addopts = ["-ra", "--strict-markers", "--strict-config", "--cov=sjs_jobwatch"]
 testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.black]
+line-length = 100
+target-version = ["py310", "py311", "py312"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "N",   # pep8-naming
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+]
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+strict_equality = true
