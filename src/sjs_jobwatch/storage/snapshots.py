@@ -8,7 +8,6 @@ import json
 import logging
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Optional
 
 from sjs_jobwatch.core import config
 from sjs_jobwatch.core.models import Snapshot
@@ -28,7 +27,7 @@ class SnapshotStore:
     - Git-friendly diffs (if desired)
     """
 
-    def __init__(self, base_dir: Optional[Path] = None) -> None:
+    def __init__(self, base_dir: Path | None = None) -> None:
         """
         Initialize snapshot storage.
         
@@ -66,9 +65,9 @@ class SnapshotStore:
             # Clean up temp file if something went wrong
             if temp_path.exists():
                 temp_path.unlink()
-            raise IOError(f"Failed to save snapshot: {e}") from e
+            raise OSError(f"Failed to save snapshot: {e}") from e
 
-    def load(self, timestamp: datetime) -> Optional[Snapshot]:
+    def load(self, timestamp: datetime) -> Snapshot | None:
         """
         Load a specific snapshot by timestamp.
         
@@ -85,7 +84,7 @@ class SnapshotStore:
             return None
 
         try:
-            with open(filepath, "r", encoding="utf-8") as f:
+            with open(filepath, encoding="utf-8") as f:
                 data = json.load(f)
             return Snapshot(**data)
         except Exception as e:
@@ -103,11 +102,11 @@ class SnapshotStore:
             List of snapshots (newest first)
         """
         files = self.list_snapshots()
-        
+
         snapshots = []
         for filepath in files[:n]:
             try:
-                with open(filepath, "r", encoding="utf-8") as f:
+                with open(filepath, encoding="utf-8") as f:
                     data = json.load(f)
                 snapshot = Snapshot(**data)
                 snapshots.append(snapshot)
@@ -135,8 +134,8 @@ class SnapshotStore:
 
     def prune_old_snapshots(
         self,
-        days: Optional[int] = None,
-        max_count: Optional[int] = None,
+        days: int | None = None,
+        max_count: int | None = None,
     ) -> int:
         """
         Remove old snapshots based on age or count limits.
@@ -234,7 +233,7 @@ class SnapshotStore:
         return timestamp.strftime("snapshot_%Y-%m-%d_%H-%M-%S.json")
 
     @staticmethod
-    def _parse_timestamp_from_filename(filename: str) -> Optional[datetime]:
+    def _parse_timestamp_from_filename(filename: str) -> datetime | None:
         """
         Extract timestamp from a snapshot filename.
         

@@ -10,7 +10,6 @@ These models represent the fundamental business entities and are designed to be:
 
 from datetime import datetime
 from enum import Enum
-from typing import Optional
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -98,47 +97,47 @@ class Job(BaseModel):
     employer: str = Field(..., min_length=1, description="Employer name")
 
     # Classification
-    category: Optional[str] = Field(None, description="Job category")
-    classification: Optional[str] = Field(None, description="Primary classification")
-    sub_classification: Optional[str] = Field(None, description="Secondary classification")
-    job_type: Optional[str] = Field(None, description="Employment type (e.g., Full-time)")
+    category: str | None = Field(None, description="Job category")
+    classification: str | None = Field(None, description="Primary classification")
+    sub_classification: str | None = Field(None, description="Secondary classification")
+    job_type: str | None = Field(None, description="Employment type (e.g., Full-time)")
 
     # Location
-    region: Optional[str] = Field(None, description="Geographic region")
-    area: Optional[str] = Field(None, description="Specific area within region")
+    region: str | None = Field(None, description="Geographic region")
+    area: str | None = Field(None, description="Specific area within region")
 
     # Description
-    summary: Optional[str] = Field(None, description="Short job summary")
-    description: Optional[str] = Field(None, description="Full job description")
+    summary: str | None = Field(None, description="Short job summary")
+    description: str | None = Field(None, description="Full job description")
 
     # Compensation
-    pay_min: Optional[float] = Field(None, ge=0, description="Minimum annual pay")
-    pay_max: Optional[float] = Field(None, ge=0, description="Maximum annual pay")
+    pay_min: float | None = Field(None, ge=0, description="Minimum annual pay")
+    pay_max: float | None = Field(None, ge=0, description="Maximum annual pay")
 
     # Dates
-    posted_date: Optional[datetime] = Field(None, description="Date job was posted")
-    start_date: Optional[datetime] = Field(None, description="Job start date")
-    end_date: Optional[datetime] = Field(None, description="Job end/closing date")
+    posted_date: datetime | None = Field(None, description="Date job was posted")
+    start_date: datetime | None = Field(None, description="Job start date")
+    end_date: datetime | None = Field(None, description="Job end/closing date")
 
     # URL
-    url: Optional[str] = Field(None, description="Direct link to job posting")
+    url: str | None = Field(None, description="Direct link to job posting")
 
     @field_validator("pay_max")
     @classmethod
-    def pay_max_greater_than_min(cls, v: Optional[float], info: dict) -> Optional[float]:
+    def pay_max_greater_than_min(cls, v: float | None, info: dict) -> float | None:
         """Ensure pay_max >= pay_min if both are set."""
         pay_min = info.data.get("pay_min")
         if v is not None and pay_min is not None and v < pay_min:
             raise ValueError(f"pay_max ({v}) must be >= pay_min ({pay_min})")
         return v
 
-    def matches_region(self, region: Optional[Region]) -> bool:
+    def matches_region(self, region: Region | None) -> bool:
         """Check if job matches a region filter."""
         if region is None or region == Region.ALL:
             return True
         return self.region == region.value
 
-    def matches_category(self, category: Optional[JobCategory]) -> bool:
+    def matches_category(self, category: JobCategory | None) -> bool:
         """Check if job matches a category filter."""
         if category is None or category == JobCategory.ALL:
             return True
@@ -157,7 +156,7 @@ class Snapshot(BaseModel):
     timestamp: datetime = Field(..., description="When this snapshot was taken")
     jobs: list[Job] = Field(default_factory=list, description="All jobs in this snapshot")
     total_count: int = Field(..., description="Total number of jobs")
-    scrape_duration_seconds: Optional[float] = Field(
+    scrape_duration_seconds: float | None = Field(
         None, ge=0, description="How long the scrape took"
     )
     source_url: str = Field(..., description="URL that was scraped")
@@ -178,8 +177,8 @@ class FieldChange(BaseModel):
     model_config = {"frozen": True}
 
     field: str = Field(..., description="Name of the field that changed")
-    old_value: Optional[str] = Field(None, description="Previous value")
-    new_value: Optional[str] = Field(None, description="New value")
+    old_value: str | None = Field(None, description="Previous value")
+    new_value: str | None = Field(None, description="New value")
 
 
 class JobChange(BaseModel):
@@ -195,8 +194,8 @@ class JobChange(BaseModel):
     model_config = {"frozen": True}
 
     job_id: str = Field(..., description="Job ID")
-    before: Optional[Job] = Field(None, description="Job state before change")
-    after: Optional[Job] = Field(None, description="Job state after change")
+    before: Job | None = Field(None, description="Job state before change")
+    after: Job | None = Field(None, description="Job state after change")
     changes: list[FieldChange] = Field(
         default_factory=list, description="Specific field changes"
     )

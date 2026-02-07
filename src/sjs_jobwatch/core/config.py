@@ -118,13 +118,13 @@ def validate_email_config() -> tuple[bool, str]:
     """
     if not GMAIL_ADDRESS:
         return False, "GMAIL_ADDRESS environment variable is not set"
-    
+
     if not GMAIL_APP_PASSWORD:
         return False, "GMAIL_APP_PASSWORD environment variable is not set"
-    
+
     if "@" not in GMAIL_ADDRESS:
         return False, "GMAIL_ADDRESS does not appear to be a valid email"
-    
+
     return True, ""
 
 
@@ -147,10 +147,10 @@ def get_sjs_url(region: str = "All", category: str = "All", keyword: str = "") -
     }
     if keyword:
         params["keyword"] = keyword
-    
+
     # Build query string
     query = "&".join(f"{k}={v}" for k, v in params.items() if v and v != "All")
-    
+
     if query:
         return f"{SJS_BASE_URL}?{query}"
     return SJS_BASE_URL

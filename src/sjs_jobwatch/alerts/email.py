@@ -8,9 +8,8 @@ import logging
 import smtplib
 from email.message import EmailMessage
 from pathlib import Path
-from typing import Optional
 
-from jinja2 import Environment, FileSystemLoader, Template
+from jinja2 import Environment, FileSystemLoader
 
 from sjs_jobwatch.core import config
 from sjs_jobwatch.core.models import DiffResult

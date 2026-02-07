@@ -5,7 +5,7 @@ Provides deterministic, explainable diffing between two snapshots.
 """
 
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from sjs_jobwatch.core.models import DiffResult, FieldChange, Job, JobChange, Snapshot
 
@@ -156,7 +156,7 @@ def _values_equal(value1: Any, value2: Any) -> bool:
     return value1 == value2
 
 
-def _serialize_value(value: Any) -> Optional[str]:
+def _serialize_value(value: Any) -> str | None:
     """
     Serialize a value for display in FieldChange.
     

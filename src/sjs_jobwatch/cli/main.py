@@ -8,7 +8,6 @@ import logging
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 import click
 from rich.console import Console
@@ -85,7 +84,7 @@ def cli(ctx: click.Context, verbose: bool) -> None:
 @click.pass_context
 def scrape(ctx: click.Context, region: str, category: str, keyword: str) -> None:
     """Scrape current jobs from the SJS website and save a snapshot."""
-    console.print(f"[bold blue]Scraping SJS jobs...[/bold blue]")
+    console.print("[bold blue]Scraping SJS jobs...[/bold blue]")
     console.print(f"  Region: {region}")
     console.print(f"  Category: {category}")
     if keyword:
@@ -135,7 +134,7 @@ def diff(ctx: click.Context, since: int, format: str) -> None:
     previous = snapshots[since]
     current = snapshots[0]
 
-    console.print(f"[bold]Comparing snapshots:[/bold]")
+    console.print("[bold]Comparing snapshots:[/bold]")
     console.print(f"  Previous: {previous.timestamp}")
     console.print(f"  Current:  {current.timestamp}")
     console.print()
@@ -326,8 +325,8 @@ def alerts() -> None:
 )
 def alerts_add(
     email: str,
-    region: Optional[str],
-    category: Optional[str],
+    region: str | None,
+    category: str | None,
     frequency: str,
     hour: int,
     severity: str,

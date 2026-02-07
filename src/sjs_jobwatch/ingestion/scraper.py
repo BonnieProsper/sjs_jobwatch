@@ -9,7 +9,7 @@ import json
 import logging
 import time
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 import requests
 from bs4 import BeautifulSoup
@@ -85,7 +85,7 @@ class SJSScraper:
 
     def scrape(
         self,
-        url: Optional[str] = None,
+        url: str | None = None,
         region: str = "All",
         category: str = "All",
         keyword: str = "",
@@ -211,7 +211,7 @@ class SJSScraper:
         except json.JSONDecodeError as e:
             raise ScrapeError(f"Failed to decode JSON data: {e}") from e
 
-    def _parse_job(self, raw: dict[str, Any]) -> Optional[Job]:
+    def _parse_job(self, raw: dict[str, Any]) -> Job | None:
         """
         Parse a single raw job dictionary into a Job object.
         
@@ -261,7 +261,7 @@ class SJSScraper:
 
 
 # Helper functions for parsing (module level for efficiency)
-def _parse_date(date_str: Optional[str]) -> Optional[datetime]:
+def _parse_date(date_str: str | None) -> datetime | None:
     """Parse ISO date string safely."""
     if not date_str:
         return None
@@ -271,7 +271,7 @@ def _parse_date(date_str: Optional[str]) -> Optional[datetime]:
         return None
 
 
-def _parse_pay(value: Any) -> Optional[float]:
+def _parse_pay(value: Any) -> float | None:
     """Parse pay value safely."""
     if value is None:
         return None
@@ -283,7 +283,7 @@ def _parse_pay(value: Any) -> Optional[float]:
 
 # Convenience function for one-off scrapes
 def scrape_sjs_jobs(
-    url: Optional[str] = None,
+    url: str | None = None,
     region: str = "All",
     category: str = "All",
     keyword: str = "",

@@ -7,7 +7,7 @@ Handles user subscriptions for job change notifications.
 import json
 import logging
 from pathlib import Path
-from typing import Optional, Any
+from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -27,11 +27,11 @@ class AlertSubscription(BaseModel):
     email: str = Field(..., description="Email address to send alerts to")
 
     # Filters
-    region: Optional[Region] = Field(
+    region: Region | None = Field(
         None,
         description="Only alert about jobs in this region (None = all regions)",
     )
-    category: Optional[JobCategory] = Field(
+    category: JobCategory | None = Field(
         None,
         description="Only alert about jobs in this category (None = all categories)",
     )
@@ -104,7 +104,7 @@ class SubscriptionStore:
     In production, this might be a database.
     """
 
-    def __init__(self, filepath: Optional[Path] = None) -> None:
+    def __init__(self, filepath: Path | None = None) -> None:
         """
         Initialize subscription storage.
 
@@ -202,7 +202,7 @@ class SubscriptionStore:
         logger.warning(f"No subscription found for {email}")
         return False
 
-    def get(self, email: str) -> Optional[AlertSubscription]:
+    def get(self, email: str) -> AlertSubscription | None:
         """
         Get a subscription by email.
 
